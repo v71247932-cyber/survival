@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WildEdge: Survive or Die</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Main Menu -->
+  <div id="mainMenu" class="screen">
+    <div class="menu-bg-overlay"></div>
+    <div class="menu-content">
+      <div class="logo">
+        <span class="logo-icon">⚔️</span>
+        <h1>WildEdge</h1>
+        <p class="tagline">Survive or Die</p>
+      </div>
+      <div class="menu-buttons">
+        <button id="btnNew" class="btn btn-primary">🌲 New Game</button>
+        <button id="btnLoad" class="btn btn-secondary">💾 Load Game</button>
+      </div>
+      <div class="menu-tips">
+        <p>WASD = Move &nbsp;|&nbsp; Mouse = Look &nbsp;|&nbsp; E = Interact &nbsp;|&nbsp; Tab = Inventory &nbsp;|&nbsp; C = Crafting &nbsp;|&nbsp; B = Build</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loadingScreen" class="screen hidden">
+    <div class="loading-content">
+      <div class="loading-icon">🌍</div>
+      <h2>Generating World...</h2>
+      <div class="loading-bar-wrap"><div id="loadingBar" class="loading-bar-fill"></div></div>
+      <p id="loadingMsg">Shaping terrain...</p>
+    </div>
+  </div>
+
+  <!-- Click to play -->
+  <div id="clickFocus" class="screen hidden">
+    <div class="focus-box">
+      <p>🖱️ Click anywhere to play</p>
+      <small>ESC = Pause</small>
+    </div>
+  </div>
+
+  <!-- Pause -->
+  <div id="pauseMenu" class="screen hidden">
+    <div class="menu-content compact">
+      <h2>⏸ Paused</h2>
+      <div class="menu-buttons">
+        <button id="btnResume" class="btn btn-primary">▶ Resume</button>
+        <button id="btnSave" class="btn btn-secondary">💾 Save</button>
+        <button id="btnToMain" class="btn btn-danger">🏠 Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Death -->
+  <div id="deathScreen" class="screen hidden">
+    <div class="menu-content compact death-content">
+      <div class="death-skull">💀</div>
+      <h2>You Died</h2>
+      <p id="deathCause">Cause: Starvation</p>
+      <p id="deathTime">Survived: Day 1</p>
+      <div class="menu-buttons">
+        <button id="btnRespawn" class="btn btn-primary">🔄 Respawn</button>
+        <button id="btnDeathMain" class="btn btn-secondary">🏠 Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="topBar">
+      <div id="timeDisplay"><span id="timeIcon">☀️</span><span id="timeText">Day 1 · 08:00</span></div>
+      <div id="weatherInfo"><span id="weatherIcon">⛅</span><span id="tempText">20°C</span></div>
+    </div>
+
+    <div id="crosshair"><div class="ch-dot"></div></div>
+    <div id="interactHint" class="hidden"><kbd>E</kbd> <span id="hintText">Chop Tree</span></div>
+
+    <div id="bottomHud">
+      <div id="vitals">
+        <div class="vbar"><span>❤️</span><div class="vtrack"><div id="vHealth" class="vfill vhealth"></div></div><span id="vHealthN" class="vnum">100</span></div>
+        <div class="vbar"><span>🍖</span><div class="vtrack"><div id="vHunger" class="vfill vhunger"></div></div><span id="vHungerN" class="vnum">100</span></div>
+        <div class="vbar"><span>💧</span><div class="vtrack"><div id="vThirst" class="vfill vthirst"></div></div><span id="vThirstN" class="vnum">100</span></div>
+        <div class="vbar"><span>🌡️</span><div class="vtrack"><div id="vTemp" class="vfill vtemp"></div></div><span id="vTempN" class="vnum">37°</span></div>
+        <div class="vbar"><span>🧠</span><div class="vtrack"><div id="vSanity" class="vfill vsanity"></div></div><span id="vSanityN" class="vnum">100</span></div>
+        <div class="vbar"><span>⚡</span><div class="vtrack"><div id="vStamina" class="vfill vstamina"></div></div></div>
+      </div>
+      <div id="hotbar"></div>
+    </div>
+
+    <div id="notifications"></div>
+    <div id="sanityOverlay"></div>
+    <div id="hitOverlay"></div>
+
+    <!-- Crafting progress bar -->
+    <div id="craftProgress" class="hidden">
+      <div class="cp-label"><span id="cpName">Crafting...</span></div>
+      <div class="cp-track"><div id="cpBar" class="cp-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- Inventory Panel -->
+  <div id="invPanel" class="panel hidden">
+    <div class="panel-head"><h3>🎒 Inventory</h3><button class="px" data-panel="invPanel">✕</button></div>
+    <div id="invGrid" class="inv-grid"></div>
+    <div class="panel-foot"><span>Weight: <b id="weightTxt">0.0</b>/50 kg</span></div>
+  </div>
+
+  <!-- Crafting Panel -->
+  <div id="craftPanel" class="panel hidden">
+    <div class="panel-head"><h3>🔨 Crafting</h3><button class="px" data-panel="craftPanel">✕</button></div>
+    <div class="craft-layout">
+      <div id="recipeList"></div>
+      <div id="recipeDetail"><p class="hint-text">← Select a recipe</p></div>
+    </div>
+  </div>
+
+  <!-- Build Panel -->
+  <div id="buildPanel" class="panel hidden">
+    <div class="panel-head"><h3>🏗️ Build Mode</h3><button class="px" data-panel="buildPanel">✕</button></div>
+    <div id="buildGrid" class="build-grid-ui"></div>
+    <p class="hint-text" style="padding:8px">Click piece → LMB place · RMB cancel · B to exit</p>
+  </div>
+
+  <!-- Tooltip -->
+  <div id="tooltip" class="tooltip hidden"></div>
+
+  <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>
