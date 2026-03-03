@@ -9,6 +9,7 @@ import { CraftingSystem } from './crafting.js';
 import { BuildingSystem } from './building.js';
 import { EntityManager } from './entities.js';
 import { UIManager } from './ui.js';
+import { Multiplayer } from './multiplayer.js';
 
 class Game {
     constructor() {
@@ -32,6 +33,7 @@ class Game {
         this.world = new World(this);
         this.weather = new WeatherSystem(this);
         this.ui = new UIManager(this);
+        this.multiplay = new Multiplayer(this);
         this.inventory = null;
         this.survival = null;
         this.player = null;
@@ -211,6 +213,12 @@ class Game {
             this.weather?.update(delta);
             this.world?.update(delta);
             this.building?.update();
+
+            // Sync movement to server
+            if (this.multiplay.isConnected) {
+                const pos = this.player.getPosition();
+                this.multiplay.sendMove(pos, this.player.yaw.rotation.y);
+            }
         }
 
         if (this.state === 'playing' || this.state === 'paused') {

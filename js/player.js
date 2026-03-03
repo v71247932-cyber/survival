@@ -46,13 +46,24 @@ export class Player {
     _setupPointerLock() {
         const canvas = document.getElementById('gameCanvas');
         canvas.addEventListener('click', () => {
-            if (this.game.state === 'playing') canvas.requestPointerLock();
+            if (this.game.state === 'playing' && !this.game.ui?.isAnyPanelOpen()) {
+                canvas.requestPointerLock();
+            }
         });
         document.addEventListener('pointerlockchange', () => {
             this.isPointerLocked = document.pointerLockElement === canvas;
             const cf = document.getElementById('clickFocus');
-            if (this.isPointerLocked) cf.classList.add('hidden');
-            else if (this.game.state === 'playing') cf.classList.remove('hidden');
+
+            if (this.isPointerLocked) {
+                cf.classList.add('hidden');
+            } else if (this.game.state === 'playing') {
+                // Only show "Click to focus" if no UI panels are blocking
+                if (!this.game.ui?.isAnyPanelOpen()) {
+                    cf.classList.remove('hidden');
+                } else {
+                    cf.classList.add('hidden');
+                }
+            }
         });
         document.addEventListener('mousemove', e => {
             if (!this.isPointerLocked) return;

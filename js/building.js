@@ -121,6 +121,17 @@ export class BuildingSystem {
         const pos = this.ghostMesh.position.clone();
         const rot = this.rotation;
         this.game.world?.placePiece(this.selectedPiece.id, pos, rot, this.selectedPiece.color);
+
+        // Multiplayer sync
+        if (this.game.multiplay?.isConnected) {
+            this.game.multiplay.sendAction('build', {
+                piece: this.selectedPiece.id,
+                pos,
+                rot,
+                color: this.selectedPiece.color
+            });
+        }
+
         this.game.ui?.notify(`✅ Placed ${this.selectedPiece.name}`);
 
         // Auto-cancel if no more items

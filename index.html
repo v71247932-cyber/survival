@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>WildEdge: Survive or Die</title>
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <canvas id="gameCanvas"></canvas>
 
@@ -19,12 +21,31 @@
         <h1>WildEdge</h1>
         <p class="tagline">Survive or Die</p>
       </div>
-      <div class="menu-buttons">
-        <button id="btnNew" class="btn btn-primary">🌲 New Game</button>
-        <button id="btnLoad" class="btn btn-secondary">💾 Load Game</button>
+      <div class="menu-btns">
+        <button id="btnNew" class="btn-main"><span class="bi">🌲</span> New Game</button>
+        <button id="btnMulti" class="btn-main"><span class="bi">🌐</span> Multiplayer</button>
+        <button id="btnLoad" class="btn-main"><span class="bi">💾</span> Load Game</button>
       </div>
       <div class="menu-tips">
-        <p>WASD = Move &nbsp;|&nbsp; Mouse = Look &nbsp;|&nbsp; E = Interact &nbsp;|&nbsp; Tab = Inventory &nbsp;|&nbsp; C = Crafting &nbsp;|&nbsp; B = Build</p>
+        <p>WASD = Move &nbsp;|&nbsp; Mouse = Look &nbsp;|&nbsp; E = Interact &nbsp;|&nbsp; Tab = Inventory &nbsp;|&nbsp;
+          C = Crafting &nbsp;|&nbsp; B = Build</p>
+      </div>
+    </div>
+
+    <!-- Multiplayer Menu -->
+    <div id="multiMenu" class="screen hidden">
+      <div class="menu-box">
+        <h1>Multiplayer</h1>
+        <div id="serverList" class="server-list">
+          <!-- Populated by JS -->
+          <div class="server-item empty">Searching for local servers...</div>
+        </div>
+        <div class="multi-actions">
+          <input type="text" id="playerName" placeholder="Enter name..." class="multi-input">
+          <button id="btnHost" class="btn-main">Create Server</button>
+          <button id="btnJoinManual" class="btn-main">Join Localhost</button>
+          <button id="btnMultiBack" class="btn-main">Back</button>
+        </div>
       </div>
     </div>
   </div>
@@ -34,7 +55,9 @@
     <div class="loading-content">
       <div class="loading-icon">🌍</div>
       <h2>Generating World...</h2>
-      <div class="loading-bar-wrap"><div id="loadingBar" class="loading-bar-fill"></div></div>
+      <div class="loading-bar-wrap">
+        <div id="loadingBar" class="loading-bar-fill"></div>
+      </div>
       <p id="loadingMsg">Shaping terrain...</p>
     </div>
   </div>
@@ -80,17 +103,43 @@
       <div id="weatherInfo"><span id="weatherIcon">⛅</span><span id="tempText">20°C</span></div>
     </div>
 
-    <div id="crosshair"><div class="ch-dot"></div></div>
+    <div id="crosshair">
+      <div class="ch-dot"></div>
+    </div>
     <div id="interactHint" class="hidden"><kbd>E</kbd> <span id="hintText">Chop Tree</span></div>
 
     <div id="bottomHud">
       <div id="vitals">
-        <div class="vbar"><span>❤️</span><div class="vtrack"><div id="vHealth" class="vfill vhealth"></div></div><span id="vHealthN" class="vnum">100</span></div>
-        <div class="vbar"><span>🍖</span><div class="vtrack"><div id="vHunger" class="vfill vhunger"></div></div><span id="vHungerN" class="vnum">100</span></div>
-        <div class="vbar"><span>💧</span><div class="vtrack"><div id="vThirst" class="vfill vthirst"></div></div><span id="vThirstN" class="vnum">100</span></div>
-        <div class="vbar"><span>🌡️</span><div class="vtrack"><div id="vTemp" class="vfill vtemp"></div></div><span id="vTempN" class="vnum">37°</span></div>
-        <div class="vbar"><span>🧠</span><div class="vtrack"><div id="vSanity" class="vfill vsanity"></div></div><span id="vSanityN" class="vnum">100</span></div>
-        <div class="vbar"><span>⚡</span><div class="vtrack"><div id="vStamina" class="vfill vstamina"></div></div></div>
+        <div class="vbar"><span>❤️</span>
+          <div class="vtrack">
+            <div id="vHealth" class="vfill vhealth"></div>
+          </div><span id="vHealthN" class="vnum">100</span>
+        </div>
+        <div class="vbar"><span>🍖</span>
+          <div class="vtrack">
+            <div id="vHunger" class="vfill vhunger"></div>
+          </div><span id="vHungerN" class="vnum">100</span>
+        </div>
+        <div class="vbar"><span>💧</span>
+          <div class="vtrack">
+            <div id="vThirst" class="vfill vthirst"></div>
+          </div><span id="vThirstN" class="vnum">100</span>
+        </div>
+        <div class="vbar"><span>🌡️</span>
+          <div class="vtrack">
+            <div id="vTemp" class="vfill vtemp"></div>
+          </div><span id="vTempN" class="vnum">37°</span>
+        </div>
+        <div class="vbar"><span>🧠</span>
+          <div class="vtrack">
+            <div id="vSanity" class="vfill vsanity"></div>
+          </div><span id="vSanityN" class="vnum">100</span>
+        </div>
+        <div class="vbar"><span>⚡</span>
+          <div class="vtrack">
+            <div id="vStamina" class="vfill vstamina"></div>
+          </div>
+        </div>
       </div>
       <div id="hotbar"></div>
     </div>
@@ -102,29 +151,39 @@
     <!-- Crafting progress bar -->
     <div id="craftProgress" class="hidden">
       <div class="cp-label"><span id="cpName">Crafting...</span></div>
-      <div class="cp-track"><div id="cpBar" class="cp-fill"></div></div>
+      <div class="cp-track">
+        <div id="cpBar" class="cp-fill"></div>
+      </div>
     </div>
   </div>
 
   <!-- Inventory Panel -->
   <div id="invPanel" class="panel hidden">
-    <div class="panel-head"><h3>🎒 Inventory</h3><button class="px" data-panel="invPanel">✕</button></div>
+    <div class="panel-head">
+      <h3>🎒 Inventory</h3><button class="px" data-panel="invPanel">✕</button>
+    </div>
     <div id="invGrid" class="inv-grid"></div>
     <div class="panel-foot"><span>Weight: <b id="weightTxt">0.0</b>/50 kg</span></div>
   </div>
 
   <!-- Crafting Panel -->
   <div id="craftPanel" class="panel hidden">
-    <div class="panel-head"><h3>🔨 Crafting</h3><button class="px" data-panel="craftPanel">✕</button></div>
+    <div class="panel-head">
+      <h3>🔨 Crafting</h3><button class="px" data-panel="craftPanel">✕</button>
+    </div>
     <div class="craft-layout">
       <div id="recipeList"></div>
-      <div id="recipeDetail"><p class="hint-text">← Select a recipe</p></div>
+      <div id="recipeDetail">
+        <p class="hint-text">← Select a recipe</p>
+      </div>
     </div>
   </div>
 
   <!-- Build Panel -->
   <div id="buildPanel" class="panel hidden">
-    <div class="panel-head"><h3>🏗️ Build Mode</h3><button class="px" data-panel="buildPanel">✕</button></div>
+    <div class="panel-head">
+      <h3>🏗️ Build Mode</h3><button class="px" data-panel="buildPanel">✕</button>
+    </div>
     <div id="buildGrid" class="build-grid-ui"></div>
     <p class="hint-text" style="padding:8px">Click piece → LMB place · RMB cancel · B to exit</p>
   </div>
@@ -132,7 +191,12 @@
   <!-- Tooltip -->
   <div id="tooltip" class="tooltip hidden"></div>
 
-  <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
+  <script type="importmap">{      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "socket.io-client": "https://cdn.socket.io/4.7.2/socket.io.esm.min.js"
+      }
+}</script>
   <script type="module" src="js/game.js"></script>
 </body>
+
 </html>

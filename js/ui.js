@@ -17,8 +17,32 @@ export class UIManager {
         });
         document.addEventListener('keydown', e => {
             if (e.code === 'Tab') { e.preventDefault(); this.togglePanel('invPanel'); }
-            if (e.code === 'KeyC') this.togglePanel('craftPanel');
+            if (e.code === 'KeyC') { e.preventDefault(); this.togglePanel('craftPanel'); }
         });
+        this._setupMultiplayerButtons();
+    }
+
+    _setupMultiplayerButtons() {
+        document.getElementById('btnMulti')?.addEventListener('click', () => {
+            this.showScreen('multiMenu');
+        });
+        document.getElementById('btnMultiBack')?.addEventListener('click', () => {
+            this.showScreen('mainMenu');
+        });
+        document.getElementById('btnHost')?.addEventListener('click', () => {
+            this.game.multiplay.connect('http://localhost:3000');
+            this.game._startNewGame();
+        });
+        document.getElementById('btnJoinManual')?.addEventListener('click', () => {
+            this.game.multiplay.connect('http://localhost:3000');
+            this.game._startNewGame();
+        });
+    }
+
+    isAnyPanelOpen() {
+        return !document.getElementById('invPanel').classList.contains('hidden') ||
+            !document.getElementById('craftPanel').classList.contains('hidden') ||
+            !document.getElementById('buildPanel').classList.contains('hidden');
     }
 
     openPanel(id) {
