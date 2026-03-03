@@ -78,45 +78,14 @@ export class UIManager {
 
     update() {
         const surv = this.game.survival;
-        const weather = this.game.weather;
-        const inv = this.game.inventory;
         if (!surv) return;
 
         // Vitals
-        const bars = [
-            ['vHealth', 'vHealthN', surv.health],
-            ['vHunger', 'vHungerN', surv.hunger],
-            ['vThirst', 'vThirstN', surv.thirst],
-            ['vSanity', 'vSanityN', surv.sanity],
-            ['vStamina', null, surv.stamina],
-        ];
-        bars.forEach(([fillId, numId, val]) => {
-            const fill = document.getElementById(fillId);
-            if (fill) fill.style.width = Math.max(0, Math.min(100, val)) + '%';
-            if (numId) {
-                const num = document.getElementById(numId);
-                if (num) num.textContent = Math.round(val);
-            }
-        });
+        const healthFill = document.getElementById('vHealth');
+        const hungerFill = document.getElementById('vHunger');
 
-        // Temperature bar — map 30–42°C to 0–100%
-        const tempFill = document.getElementById('vTemp');
-        const tempNum = document.getElementById('vTempN');
-        if (tempFill) tempFill.style.width = ((surv.bodyTemp - 30) / 12 * 100) + '%';
-        if (tempNum) tempNum.textContent = surv.bodyTemp.toFixed(1) + '°';
-
-        // Time/weather
-        if (weather) {
-            const timeEl = document.getElementById('timeText');
-            const iconEl = document.getElementById('timeIcon');
-            const wIcon = document.getElementById('weatherIcon');
-            const tempEl = document.getElementById('tempText');
-            const dayEl = document.getElementById('timeText');
-            if (timeEl) timeEl.textContent = `Day ${weather.day} · ${weather.getTimeStr()}`;
-            if (iconEl) iconEl.textContent = weather.getIcon();
-            if (wIcon) wIcon.textContent = weather.getWeatherIcon();
-            if (tempEl) tempEl.textContent = Math.round(weather.getTempModifier()) + '°C';
-        }
+        if (healthFill) healthFill.style.width = Math.max(0, Math.min(100, surv.health)) + '%';
+        if (hungerFill) hungerFill.style.width = Math.max(0, Math.min(100, surv.hunger)) + '%';
 
         this.renderHotbar();
     }

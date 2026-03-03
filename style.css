@@ -326,50 +326,48 @@ body {
 
 #bottomHud {
     position: absolute;
-    bottom: 16px;
+    bottom: 25px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 #vitals {
     display: flex;
-    gap: 12px;
-    background: rgba(0, 0, 0, .55);
-    border: 1px solid rgba(255, 255, 255, .08);
-    border-radius: 12px;
-    padding: 8px 14px;
-    backdrop-filter: blur(10px);
+    gap: 16px;
+    background: rgba(0, 0, 0, .6);
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 20px;
+    padding: 6px 18px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .vbar {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 14px;
+    gap: 8px;
 }
 
 .vtrack {
-    width: 70px;
-    height: 6px;
+    width: 120px;
+    height: 4px;
     background: rgba(255, 255, 255, .1);
-    border-radius: 3px;
+    border-radius: 2px;
     overflow: hidden;
 }
 
 .vfill {
     height: 100%;
-    border-radius: 3px;
-    transition: width .5s;
+    transition: width .5s ease;
 }
 
-.vnum {
-    font-size: 11px;
-    color: #94a3b8;
-    min-width: 28px;
+.vicon {
+    font-size: 14px;
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
 }
 
 .vhealth {
@@ -380,25 +378,9 @@ body {
     background: linear-gradient(90deg, #f59e0b, #fbbf24);
 }
 
-.vthirst {
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
-}
-
-.vtemp {
-    background: linear-gradient(90deg, #06b6d4, #f97316);
-}
-
-.vsanity {
-    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
-}
-
-.vstamina {
-    background: linear-gradient(90deg, #10b981, #34d399);
-}
-
 #hotbar {
     display: flex;
-    gap: 6px;
+    gap: 8px;
 }
 
 .hslot {

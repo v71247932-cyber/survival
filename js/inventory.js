@@ -22,6 +22,8 @@ export class Inventory {
         const item = ITEMS[id];
         let remaining = qty;
 
+        console.log(`[Inventory] addItem: ${qty}x ${id}`);
+
         // Try to stack into existing slot
         for (const slot of this.slots) {
             if (remaining <= 0) break;

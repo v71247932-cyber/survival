@@ -167,8 +167,8 @@ export class Player {
             this.onGround = false;
         }
 
-        // Boundary clamp
-        const half = 195;
+        // Boundary clamp (match SIZE=1000)
+        const half = 495;
         this.yaw.position.x = Math.max(-half, Math.min(half, this.yaw.position.x));
         this.yaw.position.z = Math.max(-half, Math.min(half, this.yaw.position.z));
 
@@ -252,16 +252,20 @@ export class Player {
         res.health--;
 
         if (res.type === 'tree') {
-            inv.addItem('wood', 2 + (inv.getSelectedItem()?.data?.tool === 'axe' ? 1 : 0));
-            if (Math.random() < 0.3) inv.addItem('fiber', 1);
+            const added = inv.addItem('wood', 2 + (inv.getSelectedItem()?.data?.tool === 'axe' ? 1 : 0));
+            if (added && Math.random() < 0.3) inv.addItem('fiber', 1);
             this.game.ui.notify('🪵 +2 Wood');
         } else if (res.type === 'rock') {
             const qty = inv.getSelectedItem()?.data?.tool === 'pickaxe' ? 2 : 1;
-            inv.addItem('stone', qty);
-            if (Math.random() < 0.25) inv.addItem('flint', 1);
+            const added = inv.addItem('stone', qty);
+            if (added && Math.random() < 0.25) inv.addItem('flint', 1);
             this.game.ui.notify('🪨 +' + qty + ' Stone');
         } else if (res.type === 'bush') {
-            if (res.berries > 0) { inv.addItem('berries', 1); res.berries--; this.game.ui.notify('🫐 +1 Berries'); }
+            if (res.berries > 0) {
+                const added = inv.addItem('berries', 1);
+                if (added) res.berries--;
+                this.game.ui.notify('🫐 +1 Berries');
+            }
         }
 
         this.game.survival.drainStamina(5);

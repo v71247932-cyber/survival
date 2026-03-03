@@ -128,6 +128,9 @@ class Game {
         this.ui.renderHotbar();
         this.ui.showScreen('clickFocus');
         this.ui.notify('🌲 Welcome to WildEdge! Find food and shelter to survive.', 'info');
+
+        // Auto-save every 2 minutes
+        this.saveInterval = setInterval(() => this._save(), 120000);
     }
 
     _pause() {
