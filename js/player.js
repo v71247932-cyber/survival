@@ -279,25 +279,30 @@ export class Player {
             return;
         }
 
+        if (this.multiplay?.isConnected) {
+            this.multiplay.sendAction('gather', { type: res.type, pos: res.pos });
+        }
+
         this.gatherProgress = 0; // reset for next hit
     }
 
     _interact() {
         if (this.nearResource) {
-            this._startGather();
-            setTimeout(() => this._stopGather(), 200);
+            // One instant hit for a single tap
+            this._finishGather();
+            return;
+        }
+
+        // Only use item if NOT interacting with world objects
+        const item = this.game.inventory?.getSelectedItem();
+        if (item) {
+            this.game.inventory.useSelectedItem();
         }
 
         // Check campfire nearby for cooking
         const pos = this.getPosition();
         if (this.game.world.isNearCampfire(pos)) {
-            this.game.ui.notify('🔥 Near campfire - open crafting (C) to cook!', 'info');
-        }
-
-        // Use selected item
-        const item = this.game.inventory?.getSelectedItem();
-        if (item) {
-            this.game.inventory.useSelectedItem();
+            this.game.ui.notify('🔥 Near campfire - open (C) to cook!', 'info');
         }
     }
 }
