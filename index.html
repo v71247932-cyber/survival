@@ -1,184 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <title>WildEdge: Survive or Die</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap">
-  <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-  <canvas id="gameCanvas"></canvas>
-
-  <!-- Main Menu -->
-  <div id="mainMenu" class="screen">
-    <div class="menu-bg-overlay"></div>
-    <div class="menu-content">
-      <div class="logo">
-        <span class="logo-icon">⚔️</span>
-        <h1>WildEdge</h1>
-        <p class="tagline">Survive or Die</p>
-      </div>
-      <div class="menu-btns">
-        <button id="btnNew" class="btn-main"><span class="bi">🌲</span> New Game</button>
-        <button id="btnMulti" class="btn-main"><span class="bi">🌐</span> Multiplayer</button>
-        <button id="btnLoad" class="btn-main"><span class="bi">💾</span> Load Game</button>
-      </div>
-      <div class="menu-tips">
-        <p>WASD = Move &nbsp;|&nbsp; Mouse = Look &nbsp;|&nbsp; E = Interact &nbsp;|&nbsp; Tab = Inventory &nbsp;|&nbsp;
-          C = Crafting &nbsp;|&nbsp; B = Build</p>
-      </div>
-    </div>
-
-    <!-- Multiplayer Menu -->
-    <div id="multiMenu" class="screen hidden">
-      <div class="menu-box">
-        <h1>Multiplayer</h1>
-        <div id="serverList" class="server-list">
-          <!-- Populated by JS -->
-          <div class="server-item empty">Searching for local servers...</div>
-        </div>
-        <div class="multi-actions">
-          <input type="text" id="playerName" placeholder="Enter name..." class="multi-input">
-          <button id="btnHost" class="btn-main">Create Server</button>
-          <button id="btnJoinManual" class="btn-main">Join Localhost</button>
-          <button id="btnMultiBack" class="btn-main">Back</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loading -->
-  <div id="loadingScreen" class="screen hidden">
-    <div class="loading-content">
-      <div class="loading-icon">🌍</div>
-      <h2>Generating World...</h2>
-      <div class="loading-bar-wrap">
-        <div id="loadingBar" class="loading-bar-fill"></div>
-      </div>
-      <p id="loadingMsg">Shaping terrain...</p>
-    </div>
-  </div>
-
-  <!-- Click to play -->
-  <div id="clickFocus" class="screen hidden">
-    <div class="focus-box">
-      <p>🖱️ Click anywhere to play</p>
-      <small>ESC = Pause</small>
-    </div>
-  </div>
-
-  <!-- Pause -->
-  <div id="pauseMenu" class="screen hidden">
-    <div class="menu-content compact">
-      <h2>⏸ Paused</h2>
-      <div class="menu-buttons">
-        <button id="btnResume" class="btn btn-primary">▶ Resume</button>
-        <button id="btnSave" class="btn btn-secondary">💾 Save</button>
-        <button id="btnToMain" class="btn btn-danger">🏠 Main Menu</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Death -->
-  <div id="deathScreen" class="screen hidden">
-    <div class="menu-content compact death-content">
-      <div class="death-skull">💀</div>
-      <h2>You Died</h2>
-      <p id="deathCause">Cause: Starvation</p>
-      <p id="deathTime">Survived: Day 1</p>
-      <div class="menu-buttons">
-        <button id="btnRespawn" class="btn btn-primary">🔄 Respawn</button>
-        <button id="btnDeathMain" class="btn btn-secondary">🏠 Main Menu</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- HUD -->
-  <div id="hud" class="hidden">
-    <div id="topBar">
-      <div id="timeDisplay"><span id="timeIcon">☀️</span><span id="timeText">Day 1 · 08:00</span></div>
-      <div id="weatherInfo"><span id="weatherIcon">⛅</span><span id="tempText">20°C</span></div>
-    </div>
-
-    <div id="crosshair">
-      <div class="ch-dot"></div>
-    </div>
-    <div id="interactHint" class="hidden"><kbd>E</kbd> <span id="hintText">Chop Tree</span></div>
-
-    <div id="bottomHud">
-      <div id="vitals">
-        <div class="vbar">
-          <div class="vtrack">
-            <div id="vHealth" class="vfill vhealth"></div>
-          </div>
-          <span class="vicon">❤️</span>
-        </div>
-        <div class="vbar">
-          <div class="vtrack">
-            <div id="vHunger" class="vfill vhunger"></div>
-          </div>
-          <span class="vicon">🍖</span>
-        </div>
-      </div>
-      <div id="hotbar"></div>
-    </div>
-
-    <div id="notifications"></div>
-    <div id="sanityOverlay"></div>
-    <div id="hitOverlay"></div>
-
-    <!-- Crafting progress bar -->
-    <div id="craftProgress" class="hidden">
-      <div class="cp-label"><span id="cpName">Crafting...</span></div>
-      <div class="cp-track">
-        <div id="cpBar" class="cp-fill"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Inventory Panel -->
-  <div id="invPanel" class="panel hidden">
-    <div class="panel-head">
-      <h3>🎒 Inventory</h3><button class="px" data-panel="invPanel">✕</button>
-    </div>
-    <div id="invGrid" class="inv-grid"></div>
-    <div class="panel-foot"><span>Weight: <b id="weightTxt">0.0</b>/50 kg</span></div>
-  </div>
-
-  <!-- Crafting Panel -->
-  <div id="craftPanel" class="panel hidden">
-    <div class="panel-head">
-      <h3>🔨 Crafting</h3><button class="px" data-panel="craftPanel">✕</button>
-    </div>
-    <div class="craft-layout">
-      <div id="recipeList"></div>
-      <div id="recipeDetail">
-        <p class="hint-text">← Select a recipe</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Build Panel -->
-  <div id="buildPanel" class="panel hidden">
-    <div class="panel-head">
-      <h3>🏗️ Build Mode</h3><button class="px" data-panel="buildPanel">✕</button>
-    </div>
-    <div id="buildGrid" class="build-grid-ui"></div>
-    <p class="hint-text" style="padding:8px">Click piece → LMB place · RMB cancel · B to exit</p>
-  </div>
-
-  <!-- Tooltip -->
-  <div id="tooltip" class="tooltip hidden"></div>
-
-  <script type="importmap">{      "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "socket.io-client": "https://cdn.socket.io/4.7.2/socket.io.esm.min.js"
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Survival Voxel Game</title>
+    <style>
+      body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Courier New', Courier, monospace; user-select: none; }
+      #app { width: 100vw; height: 100vh; }
+      #crosshair {
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 20px; height: 20px;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
       }
-}</script>
-  <script type="module" src="js/game.js"></script>
-</body>
-
+      #crosshair::before, #crosshair::after {
+        content: ''; position: absolute; background-color: rgba(255, 255, 255, 0.8);
+        mix-blend-mode: difference;
+      }
+      #crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; }
+      #crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; }
+      
+      #ui-layer {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+        display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="crosshair"></div>
+    <div id="ui-layer"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

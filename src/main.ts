@@ -1,0 +1,112 @@
+import './style.css';
+import * as THREE from 'three';
+import { World } from './world/World';
+import { Player } from './entities/Player';
+import { UIManager } from './ui/UIManager';
+import { InventoryController } from './gameplay/InventoryController';
+import { EntityManager } from './entities/EntityManager';
+
+// Setup Scene
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87CEEB);
+scene.fog = new THREE.Fog(0x87CEEB, 20, 60);
+
+// Setup Camera
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+// Setup Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('app')!.appendChild(renderer.domElement);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.4);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
+dirLight.position.set(100, 200, 50);
+dirLight.castShadow = true;
+dirLight.shadow.camera.left = -50;
+dirLight.shadow.camera.right = 50;
+dirLight.shadow.camera.top = 50;
+dirLight.shadow.camera.bottom = -50;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
+scene.add(dirLight);
+
+// World
+const world = new World(scene);
+
+// Initial loading so player doesn't fall through unloaded chunk
+world.update(new THREE.Vector3(0, 0, 0));
+
+// Player
+const player = new Player(camera, document.body, world);
+
+// UI and Inventory
+const uiLayer = document.getElementById('ui-layer')!;
+const ui = new UIManager(uiLayer);
+const inventoryCtrl = new InventoryController(player.inventory, ui);
+(window as any).inventoryCtrl = inventoryCtrl;
+
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'KeyE') {
+        const isOpen = ui.toggleInventory();
+        if (isOpen) {
+            player.controls.unlock();
+        } else {
+            player.controls.lock();
+        }
+    }
+});
+
+// Entities
+const entityManager = new EntityManager(scene, world, player);
+
+// Main Loop
+const clock = new THREE.Clock();
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    let delta = clock.getDelta();
+    if (delta > 0.1) delta = 0.1; // clamp delta to prevent huge jumps
+
+    // Survival Update
+    player.survival.update(delta);
+
+    const healthStat = document.getElementById('healthStat');
+    if (healthStat) {
+        healthStat.innerText = 'Health: ' + '❤'.repeat(Math.ceil(player.survival.health / 2)) + (player.survival.health % 2 !== 0 && player.survival.health > 0 ? '♥' : '');
+    }
+    const hungerStat = document.getElementById('hungerStat');
+    if (hungerStat) {
+        hungerStat.innerText = 'Hunger: ' + '🍗'.repeat(Math.ceil(player.survival.hunger / 2));
+    }
+
+    // Update player & physics
+    player.update(delta);
+
+    // Update entities
+    entityManager.update(delta);
+
+    // Update chunks
+    world.update(camera.position);
+
+    // Move sun with player for simple shadow mapping
+    dirLight.position.set(camera.position.x + 50, camera.position.y + 100, camera.position.z + 50);
+    dirLight.target.position.set(camera.position.x, camera.position.y, camera.position.z);
+    dirLight.target.updateMatrixWorld();
+
+    renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
