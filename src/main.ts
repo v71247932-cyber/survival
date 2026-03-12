@@ -5,6 +5,7 @@ import { Player } from './entities/Player';
 import { UIManager } from './ui/UIManager';
 import { InventoryController } from './gameplay/InventoryController';
 import { EntityManager } from './entities/EntityManager';
+import { NetworkManager } from './network/NetworkManager';
 
 // Setup Scene
 const scene = new THREE.Scene();
@@ -53,6 +54,30 @@ const inventoryCtrl = new InventoryController(player.inventory, ui);
 (window as any).inventoryCtrl = inventoryCtrl;
 
 document.addEventListener('keydown', (e) => {
+    // Prevent actions if chat input is focused
+    if (document.activeElement?.id === 'chat-input') {
+        if (e.code === 'Enter') {
+            const chatInput = document.getElementById('chat-input') as HTMLInputElement;
+            if (chatInput && chatInput.value.trim() !== '') {
+                if (networkManager.connected) {
+                    networkManager.send({
+                        type: 'chat',
+                        message: chatInput.value.trim()
+                    });
+                } else {
+                    addChatMessage('System', 'You must be connected to a server to chat.', '#ff5555');
+                }
+                chatInput.value = '';
+            }
+
+            // Unfocus chat
+            document.getElementById('chat-input-container')!.style.display = 'none';
+            player.controls.lock();
+            document.body.focus();
+        }
+        return;
+    }
+
     if (e.code === 'KeyE') {
         const isOpen = ui.toggleInventory();
         if (isOpen) {
@@ -61,10 +86,107 @@ document.addEventListener('keydown', (e) => {
             player.controls.lock();
         }
     }
+
+    if (e.code === 'KeyT') {
+        e.preventDefault();
+        const chatContainer = document.getElementById('chat-input-container');
+        if (chatContainer) {
+            chatContainer.style.display = 'block';
+            player.controls.unlock();
+            setTimeout(() => {
+                document.getElementById('chat-input')?.focus();
+            }, 10);
+        }
+    }
+
+    if (e.code === 'Tab') {
+        e.preventDefault();
+        const playerListContainer = document.getElementById('player-list-container');
+        if (playerListContainer) {
+            playerListContainer.style.display = 'block';
+            updatePlayerListUI();
+        }
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (e.code === 'Tab') {
+        e.preventDefault();
+        const playerListContainer = document.getElementById('player-list-container');
+        if (playerListContainer) {
+            playerListContainer.style.display = 'none';
+        }
+    }
+});
+
+function updatePlayerListUI() {
+    const listContent = document.getElementById('player-list-content');
+    if (!listContent) return;
+
+    listContent.innerHTML = '';
+
+    // Add self
+    const usernameInput = document.getElementById('menu-username') as HTMLInputElement;
+    const localName = usernameInput ? usernameInput.value : 'Player';
+    listContent.innerHTML += `<div class="player-list-item"><span style="color: #55ff55">${localName} (You)</span><span>0ms</span></div>`;
+
+    // Add remote players
+    const entities = (entityManager as any).remotePlayers as Map<string, any>;
+    if (entities) {
+        for (const [_, rp] of entities.entries()) {
+            listContent.innerHTML += `<div class="player-list-item"><span>${rp.username}</span><span>~ms</span></div>`;
+        }
+    }
+}
+
+// Chat system helper
+function addChatMessage(username: string, message: string, color: string = '#ffffff') {
+    const history = document.getElementById('chat-history');
+    if (history) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-msg';
+        msgDiv.innerHTML = `<b style="color: ${color}">${username}:</b> ${message}`;
+        history.appendChild(msgDiv);
+
+        // Keep only last 20 messages
+        while (history.children.length > 20) {
+            history.removeChild(history.firstChild!);
+        }
+    }
+}
+
+// Network Chat Event
+window.addEventListener('chat_message', (e: Event) => {
+    const customEvent = e as CustomEvent;
+    const data = customEvent.detail;
+
+    let color = '#ffffff';
+    if (data.id === 'server') color = '#ffaa00';
+    else if (data.id === networkManager.localPlayerId) color = '#55ff55';
+
+    addChatMessage(data.username, data.message, color);
 });
 
 // Entities
-const entityManager = new EntityManager(scene, world, player);
+const entityManager = new EntityManager(scene);
+
+// Network
+const networkManager = new NetworkManager(world, entityManager, player);
+(window as any).networkManager = networkManager; // Make accessible for UI to trigger connect
+
+// Setup Block Update Synchronization
+window.addEventListener('local_block_update', (e: Event) => {
+    const customEvent = e as CustomEvent;
+    if (networkManager.connected) {
+        networkManager.send({
+            type: 'block_update',
+            x: customEvent.detail.x,
+            y: customEvent.detail.y,
+            z: customEvent.detail.z,
+            blockType: customEvent.detail.type
+        });
+    }
+});
 
 // Main Loop
 const clock = new THREE.Clock();
@@ -87,11 +209,15 @@ function animate() {
         hungerStat.innerText = 'Hunger: ' + '🍗'.repeat(Math.ceil(player.survival.hunger / 2));
     }
 
-    // Update player & physics
+    // Update player & physics (only if chat/inventory and menu aren't open lock)
+    // We can rely on controls.isLocked for this
     player.update(delta);
 
     // Update entities
     entityManager.update(delta);
+
+    // Update network
+    networkManager.update();
 
     // Update chunks
     world.update(camera.position);

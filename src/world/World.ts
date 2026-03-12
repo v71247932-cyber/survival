@@ -70,7 +70,7 @@ export class World {
         return chunk.getBlock(lx, Math.floor(y), lz);
     }
 
-    public setBlock(x: number, y: number, z: number, type: BlockType) {
+    public setBlock(x: number, y: number, z: number, type: BlockType, skipEvent: boolean = false) {
         const cx = Math.floor(x / CHUNK_WIDTH);
         const cz = Math.floor(z / CHUNK_WIDTH);
         const chunk = this.chunks.get(`${cx},${cz}`);
@@ -83,5 +83,13 @@ export class World {
 
         chunk.setBlock(lx, Math.floor(y), lz, type);
         chunk.buildMesh(this.materials);
+
+        // Dispatch event for network
+        if (!skipEvent) {
+            const event = new CustomEvent('local_block_update', {
+                detail: { x, y, z, type }
+            });
+            window.dispatchEvent(event);
+        }
     }
 }

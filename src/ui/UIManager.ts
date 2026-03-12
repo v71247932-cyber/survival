@@ -32,6 +32,19 @@ export class UIManager {
                      ${Array(27).fill(0).map((_, i) => `<div class="slot" id="main-${i}" style="width: 40px; height: 40px; background: #8b8b8b; border: 2px solid #555;"></div>`).join('')}
                 </div>
             </div>
+            
+            <div id="main-menu" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('/textures/dirt.png') repeat; background-size: 64px 64px; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; z-index: 1000;">
+                <div style="background: rgba(0,0,0,0.8); padding: 40px; border: 4px solid #555; color: white; text-align: center; font-family: 'Courier New', monospace;">
+                    <h1 style="margin-top: 0; color: #aaa;">Survival Game</h1>
+                    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 30px;">
+                        <input id="menu-username" type="text" placeholder="Username" style="padding: 10px; font-family: inherit; font-size: 16px; background: #333; color: white; border: 2px solid #555;" value="Player${Math.floor(Math.random() * 1000)}" />
+                        <input id="menu-ip" type="text" placeholder="Server IP (e.g. wss://your-server.onrender.com or localhost:8080)" style="padding: 10px; font-family: inherit; font-size: 16px; background: #333; color: white; border: 2px solid #555;" value="localhost:8080" />
+                        <button id="btn-singleplayer" style="padding: 10px 20px; font-family: inherit; font-size: 16px; background: #555; color: white; border: 2px solid white; cursor: pointer; margin-top: 10px;">Play Singleplayer</button>
+                        <button id="btn-multiplayer" style="padding: 10px 20px; font-family: inherit; font-size: 16px; background: #3a7a3a; color: white; border: 2px solid white; cursor: pointer;">Connect to Server</button>
+                        <p style="font-size: 12px; color: #888; max-width: 300px; margin-top: 10px;">Note: You need to run the NodeJS backend somewhere (e.g., Render) to play multiplayer.</p>
+                    </div>
+                </div>
+            </div>
         `;
 
         // Add minimal CSS for slot contents
@@ -41,8 +54,37 @@ export class UIManager {
             .item-count { position: absolute; bottom: 2px; right: 2px; color: white; font-size: 12px; font-weight: bold; text-shadow: 1px 1px 0 #000; }
             .durability-bar { position: absolute; bottom: 0; left: 0; height: 4px; background: #0f0; }
             .slot.selected { border-color: white !important; }
+            button:hover { filter: brightness(1.2); }
+            button:active { filter: brightness(0.8); }
         `;
         document.head.appendChild(style);
+
+        this.setupMenu();
+    }
+
+    private setupMenu() {
+        const menu = document.getElementById('main-menu');
+        const btnSingle = document.getElementById('btn-singleplayer');
+        const btnMulti = document.getElementById('btn-multiplayer');
+        const inputUsername = document.getElementById('menu-username') as HTMLInputElement;
+        const inputIp = document.getElementById('menu-ip') as HTMLInputElement;
+
+        if (menu && btnSingle && btnMulti && inputUsername && inputIp) {
+            btnSingle.addEventListener('click', () => {
+                menu.style.display = 'none';
+                this.container.style.pointerEvents = 'none';
+            });
+
+            btnMulti.addEventListener('click', () => {
+                const username = inputUsername.value;
+                const ip = inputIp.value;
+                if ((window as any).networkManager) {
+                    (window as any).networkManager.connect(ip, username);
+                }
+                menu.style.display = 'none';
+                this.container.style.pointerEvents = 'none';
+            });
+        }
     }
 
     public updateHotbarSelection(index: number) {

@@ -73,5 +73,10 @@ export function createBlockMaterials(): THREE.Material[] {
         new THREE.MeshLambertMaterial({ color: 0x3366ff, transparent: true, opacity: 0.6, side: THREE.DoubleSide }), // 9: Water
 
         new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // 10: Glass
+
+        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#5b5b5b', 20) }), // 11: Cobblestone
+        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#a07c4e', 10) }), // 12: Wood Planks
+        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#827f7a', 25) }), // 13: Gravel
+        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#9b3c3c', 15) }) // 14: Bricks
     ];
 }

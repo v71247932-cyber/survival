@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "vite"
+    "dev": "vite",
+    "server": "npx tsx server/server.ts"
   },
   "repository": {
     "type": "git",
@@ -21,10 +22,12 @@
   "homepage": "https://github.com/v71247932-cyber/survival#readme",
   "dependencies": {
     "simplex-noise": "^4.0.3",
-    "three": "^0.183.2"
+    "three": "^0.183.2",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "@types/three": "^0.183.1",
+    "@types/ws": "^8.18.1",
     "typescript": "^5.9.3",
     "vite": "^8.0.0"
   }

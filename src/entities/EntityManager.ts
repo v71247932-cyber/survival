@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { World } from '../world/World';
 import { Player } from './Player';
+import { RemotePlayer } from './RemotePlayer';
 
 export class Mob {
     public mesh: THREE.Mesh;
@@ -82,41 +83,82 @@ export class Mob {
 
 export class EntityManager {
     private mobs: Mob[] = [];
+    private remotePlayers: Map<string, RemotePlayer> = new Map();
     private scene: THREE.Scene;
-    private world: World;
-    private player: Player;
+    // private world: World;
+    // private player: Player;
 
-    constructor(scene: THREE.Scene, world: World, player: Player) {
+    constructor(scene: THREE.Scene) {
         this.scene = scene;
-        this.world = world;
-        this.player = player;
+        // this.world = world;
+        // this.player = player;
     }
 
     public update(delta: number) {
-        if (Math.random() < 0.005 && this.mobs.length < 5) {
-            this.spawnMob();
-        }
+        // Only spawn mobs if in singleplayer or if we define this client as the "host"
+        // For this prototype, we'll keep local mob spawning but ideally the server handles it
+        // if (Math.random() < 0.005 && this.mobs.length < 5) {
+        //     this.spawnMob();
+        // }
 
         for (const mob of this.mobs) {
             mob.update(delta);
         }
+
+        for (const remotePlayer of this.remotePlayers.values()) {
+            remotePlayer.update(delta);
+        }
     }
 
-    private spawnMob() {
-        const px = this.player.camera.position.x;
-        const pz = this.player.camera.position.z;
+    // --- Remote Players ---
 
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 10 + Math.random() * 10;
-
-        const sx = px + Math.cos(angle) * dist;
-        const sz = pz + Math.sin(angle) * dist;
-        const sy = this.player.camera.position.y + 10; // Drop from above
-
-        const isHostile = Math.random() < 0.3; // 30% hostile
-        const mob = new Mob(this.world, new THREE.Vector3(sx, sy, sz), isHostile, this.player);
-
-        this.scene.add(mob.mesh);
-        this.mobs.push(mob);
+    public addRemotePlayer(id: string, username: string, pos: { x: number, y: number, z: number }) {
+        if (!this.remotePlayers.has(id)) {
+            const rp = new RemotePlayer(id, username, pos);
+            this.scene.add(rp.group);
+            this.remotePlayers.set(id, rp);
+        }
     }
+
+    public updateRemotePlayer(id: string, pos: { x: number, y: number, z: number }, rot: { y: number }) {
+        const rp = this.remotePlayers.get(id);
+        if (rp) {
+            rp.setTarget(pos, rot);
+        }
+    }
+
+    public removeRemotePlayer(id: string) {
+        const rp = this.remotePlayers.get(id);
+        if (rp) {
+            this.scene.remove(rp.group);
+            rp.dispose();
+            this.remotePlayers.delete(id);
+        }
+    }
+
+    public clearRemotePlayers() {
+        for (const rp of this.remotePlayers.values()) {
+            this.scene.remove(rp.group);
+            rp.dispose();
+        }
+        this.remotePlayers.clear();
+    }
+
+    // private spawnMob() {
+    //     const px = this.player.camera.position.x;
+    //     const pz = this.player.camera.position.z;
+
+    //     const angle = Math.random() * Math.PI * 2;
+    //     const dist = 10 + Math.random() * 10;
+
+    //     const sx = px + Math.cos(angle) * dist;
+    //     const sz = pz + Math.sin(angle) * dist;
+    //     const sy = this.player.camera.position.y + 10; // Drop from above
+
+    //     const isHostile = Math.random() < 0.3; // 30% hostile
+    //     const mob = new Mob(this.world, new THREE.Vector3(sx, sy, sz), isHostile, this.player);
+
+    //     this.scene.add(mob.mesh);
+    //     this.mobs.push(mob);
+    // }
 }

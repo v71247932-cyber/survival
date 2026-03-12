@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: survival-multiplayer-backend
+    env: node
+    buildCommand: npm install && npx tsc --noEmit
+    startCommand: npm run server
+    envVars:
+      - key: NODE_ENV
+        value: production

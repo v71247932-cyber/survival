@@ -1,6 +1,7 @@
 import { createNoise2D, createNoise3D } from 'simplex-noise';
 import { Chunk, CHUNK_WIDTH, CHUNK_HEIGHT } from './Chunk';
 import { BlockType } from './BlockInfo';
+import { StructureGenerator } from './StructureGenerator';
 
 export class WorldGenerator {
     private noise2D = createNoise2D();
@@ -15,8 +16,10 @@ export class WorldGenerator {
     public generateChunk(chunk: Chunk) {
         const dx = chunk.dx * CHUNK_WIDTH;
         const dz = chunk.dz * CHUNK_WIDTH;
+        const heightmap: number[][] = [];
 
         for (let x = 0; x < CHUNK_WIDTH; x++) {
+            heightmap[x] = [];
             for (let z = 0; z < CHUNK_WIDTH; z++) {
                 const worldX = dx + x;
                 const worldZ = dz + z;
@@ -28,6 +31,7 @@ export class WorldGenerator {
 
                 // Map e from roughly -1..1 to height
                 const height = Math.floor(40 + (e + 1) * 20);
+                heightmap[x][z] = height;
 
                 // Humidity/temperature for biomes
                 const moisture = this.noise(worldX, worldZ, 0.003); // -1 to 1
@@ -56,7 +60,9 @@ export class WorldGenerator {
                     } else {
                         // Caves using 3D noise
                         const caveNoise = this.noise3D(worldX * 0.05, y * 0.05, worldZ * 0.05);
-                        if (caveNoise > 0.4) {
+                        const largeCaveNoise = this.noise3D(worldX * 0.015, y * 0.02, worldZ * 0.015);
+
+                        if (caveNoise > 0.4 || largeCaveNoise > 0.45) {
                             chunk.setBlock(x, y, z, BlockType.AIR);
                         } else {
                             chunk.setBlock(x, y, z, BlockType.STONE);
@@ -70,6 +76,10 @@ export class WorldGenerator {
                 }
             }
         }
+
+        // Generate structures based on chunk terrain
+        const structGen = new StructureGenerator(this.seedOffset);
+        structGen.generateStructures(chunk, heightmap);
     }
 
     private generateTree(chunk: Chunk, x: number, y: number, z: number) {
