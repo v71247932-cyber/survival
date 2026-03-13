@@ -9,17 +9,35 @@ export interface CraftingRecipe {
 
 export const Recipes: CraftingRecipe[] = [
     {
-        // Wood to Planks (fictional recipe for demo: wood block -> 4 wood blocks, normally it's log to planks)
+        // Wood to Planks
         pattern: [[ItemID.WOOD_BLOCK]],
-        result: { item: ItemID.WOOD_BLOCK, count: 4 } // Simplification since we don't have planks yet
+        result: { item: ItemID.WOOD_PLANKS_BLOCK, count: 4 }
     },
     {
-        // Wooden Pickaxe (Top row wood, middle stick, bottom stick) - simplified to just wood vertically
+        // Planks to Sticks
         pattern: [
-            [ItemID.WOOD_BLOCK],
-            [ItemID.WOOD_BLOCK]
+            [ItemID.WOOD_PLANKS_BLOCK],
+            [ItemID.WOOD_PLANKS_BLOCK]
+        ],
+        result: { item: ItemID.STICK, count: 4 }
+    },
+    {
+        // Wooden Pickaxe
+        pattern: [
+            [ItemID.WOOD_PLANKS_BLOCK, ItemID.WOOD_PLANKS_BLOCK],
+            [ItemID.NONE, ItemID.STICK],
+            [ItemID.NONE, ItemID.STICK]
         ],
         result: { item: ItemID.WOODEN_PICKAXE, count: 1 }
+    },
+    {
+        // Stone Pickaxe
+        pattern: [
+            [ItemID.COBBLESTONE_BLOCK, ItemID.COBBLESTONE_BLOCK],
+            [ItemID.NONE, ItemID.STICK],
+            [ItemID.NONE, ItemID.STICK]
+        ],
+        result: { item: ItemID.STONE_PICKAXE, count: 1 }
     }
 ];
 

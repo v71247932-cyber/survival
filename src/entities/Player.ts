@@ -4,7 +4,7 @@ import { World } from '../world/World';
 import { BlockType, BlockTransparent } from '../world/BlockInfo';
 import { InventoryManager } from '../gameplay/InventoryManager';
 import { SurvivalSystem } from '../gameplay/SurvivalSystem';
-import { getBlockTypeFromItem } from '../gameplay/Items';
+import { getBlockTypeFromItem, getItemFromBlockType, ItemID } from '../gameplay/Items';
 
 export class Player {
     public camera: THREE.PerspectiveCamera;
@@ -139,10 +139,6 @@ export class Player {
         this.camera.position.y += this.velocity.y * delta;
         this.checkCollision('y');
 
-        // Crouching logic
-        if (this.isCrouching && this.onGround) {
-            this.camera.position.y -= (this.normalHeight - this.crouchHeight);
-        }
     }
 
     private checkCollision(axis: 'x' | 'y' | 'z') {
@@ -210,13 +206,20 @@ export class Player {
             const b = this.world.getBlock(bx, by, bz);
             if (b !== BlockType.AIR && b !== BlockType.WATER) {
                 if (b === BlockType.BEDROCK) return; // Cannot break bedrock
-                // Break block
-                this.world.setBlock(bx, by, bz, BlockType.AIR);
 
                 // Track tool durability
                 if (this.inventory.getSelectedSlot().item >= 100) {
                     this.inventory.damageSelectedTool();
                 }
+
+                // Add to inventory before breaking
+                const item = getItemFromBlockType(b);
+                if (item !== ItemID.NONE) {
+                    this.inventory.addItem(item, 1);
+                }
+
+                // Break block
+                this.world.setBlock(bx, by, bz, BlockType.AIR);
                 return;
             }
         }

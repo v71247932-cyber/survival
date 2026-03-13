@@ -8,6 +8,15 @@ export enum ItemID {
     WOOD_BLOCK = 4,
     LEAVES_BLOCK = 5,
     SAND_BLOCK = 6,
+    COBBLESTONE_BLOCK = 9,
+    WOOD_PLANKS_BLOCK = 10,
+    GRAVEL_BLOCK = 11,
+    BRICKS_BLOCK = 12,
+    SANDSTONE_BLOCK = 13,
+    GOLD_BLOCK = 14,
+    BEDROCK_BLOCK = 15,
+
+    STICK = 50,
 
     // Tools
     WOODEN_PICKAXE = 100,

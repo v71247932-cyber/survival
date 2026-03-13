@@ -115,8 +115,16 @@ export class UIManager {
             4: '#8f683f', // Wood
             5: '#2F6D17', // Leaves
             6: '#DCCC8B', // Sand
+            9: '#808080', // Cobblestone
+            10: '#b8945f', // Wood Planks
+            11: '#6b6b6b', // Gravel
+            12: '#a34e3d', // Bricks
+            13: '#d9cc96', // Sandstone
+            14: '#ffd700', // Gold
+            15: '#262626', // Bedrock
         };
 
+        if (id === 50) return `<div style="font-size: 24px;">🥢</div>`; // Stick icon
         if (id >= 100) return `<div style="font-size: 24px;">⛏️</div>`; // Generic tool icon
 
         return `<div style="width: 28px; height: 28px; background-color: ${colorMap[id]}; border: 2px solid rgba(0,0,0,0.5);"></div>`;
