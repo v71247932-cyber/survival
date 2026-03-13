@@ -164,6 +164,10 @@ export class Player {
                         if (axis === 'y') {
                             if (this.velocity.y < 0) {
                                 // Hit ground
+                                if (this.velocity.y < -15) {
+                                    const damage = Math.floor((Math.abs(this.velocity.y) - 15) * 0.5);
+                                    if (damage > 0) this.survival.takeDamage(damage);
+                                }
                                 pos.y = y + 1 + h;
                                 this.velocity.y = 0;
                                 this.onGround = true;

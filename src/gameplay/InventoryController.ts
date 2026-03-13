@@ -26,35 +26,63 @@ export class InventoryController {
             }
         });
 
-        // Drag and Drop (simplified simulated drag via clicks for prototype)
-        document.addEventListener('mousedown', (e) => {
+        // Click to move items
+        document.addEventListener('click', (e) => {
             const target = e.target as HTMLElement;
             const slotContainer = target.closest('.slot');
-            if (!slotContainer) return;
 
-            const id = slotContainer.id; // e.g., 'hotbar-0', 'main-5', 'crafting-1'
+            // If we didn't click a slot and we aren't "carrying" anything, ignore
+            if (!slotContainer && !this.draggedSource) return;
+
+            // If we clicked outside a slot while carrying, we could drop it (for now, just cancel)
+            if (!slotContainer && this.draggedSource) {
+                this.draggedSource = null;
+                this.render();
+                return;
+            }
+
+            const id = (slotContainer as HTMLElement).id;
             if (!id) return;
 
             const parts = id.split('-');
             const type = parts[0] as 'hotbar' | 'main' | 'crafting';
-            if (type === 'crafting' && parts[1] === 'result') return; // Cannot drag FROM result this easily
-
-            const index = parseInt(parts[1]);
+            const index = parts[1] === 'result' ? -1 : parseInt(parts[1]);
 
             if (this.draggedSource) {
-                // Drop
-                if (this.draggedSource.type === 'hotbar' || this.draggedSource.type === 'main') {
+                // DROP/MOVE ITEM
+                const source = this.draggedSource;
+
+                if (type === 'crafting' && index === -1) {
+                    // Cannot "drop" into result slot
+                    this.draggedSource = null;
+                    this.render();
+                    return;
+                }
+
+                // Swap or move logic
+                if (source.type === 'hotbar' || source.type === 'main') {
                     if (type === 'hotbar' || type === 'main') {
-                        this.inventory.swapSlots(this.draggedSource.type, this.draggedSource.index, type, index);
+                        this.inventory.swapSlots(source.type, source.index, type, index);
+                    } else if (type === 'crafting') {
+                        // Simplified: move from inv to crafting
+                        // (Usually you'd want a separate manager for the crafting grid content)
                     }
                 }
+
                 this.draggedSource = null;
                 this.render();
-
             } else {
-                // Pick up
-                this.draggedSource = { type, index };
-                (slotContainer as HTMLElement).style.opacity = '0.5';
+                // PICK UP ITEM
+                if (type === 'crafting' && index === -1) {
+                    // Logic to "take" result would go here
+                    return;
+                }
+
+                const slot = type === 'hotbar' ? this.inventory.hotbar[index] : (type === 'main' ? this.inventory.main[index] : null);
+                if (slot && slot.item !== 0) {
+                    this.draggedSource = { type, index };
+                    this.render();
+                }
             }
         });
     }
