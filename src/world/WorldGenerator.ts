@@ -37,6 +37,10 @@ export class WorldGenerator {
                 const moisture = this.noise(worldX, worldZ, 0.003); // -1 to 1
 
                 for (let y = 0; y < CHUNK_HEIGHT; y++) {
+                    if (y === 0) {
+                        chunk.setBlock(x, y, z, BlockType.BEDROCK);
+                        continue;
+                    }
                     if (y > height) {
                         if (y <= 42) {
                             chunk.setBlock(x, y, z, BlockType.WATER);

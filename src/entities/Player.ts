@@ -209,6 +209,7 @@ export class Player {
 
             const b = this.world.getBlock(bx, by, bz);
             if (b !== BlockType.AIR && b !== BlockType.WATER) {
+                if (b === BlockType.BEDROCK) return; // Cannot break bedrock
                 // Break block
                 this.world.setBlock(bx, by, bz, BlockType.AIR);
 

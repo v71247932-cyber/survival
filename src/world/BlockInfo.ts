@@ -13,7 +13,8 @@ export enum BlockType {
     GRAVEL = 11,
     BRICKS = 12,
     SANDSTONE = 13,
-    GOLD_BLOCK = 14
+    GOLD_BLOCK = 14,
+    BEDROCK = 15
 }
 
 export const BlockTransparent: Record<BlockType, boolean> = {
@@ -31,7 +32,8 @@ export const BlockTransparent: Record<BlockType, boolean> = {
     [BlockType.GRAVEL]: false,
     [BlockType.BRICKS]: false,
     [BlockType.SANDSTONE]: false,
-    [BlockType.GOLD_BLOCK]: false
+    [BlockType.GOLD_BLOCK]: false,
+    [BlockType.BEDROCK]: false
 };
 
 // Returns an array of material indices for [px, nx, py, ny, pz, nz] (right, left, top, bottom, front, back)
@@ -51,6 +53,7 @@ export function getBlockMaterialIndices(type: BlockType): number[] {
         case BlockType.BRICKS: return [14, 14, 14, 14, 14, 14];
         case BlockType.SANDSTONE: return [15, 15, 15, 15, 15, 15];
         case BlockType.GOLD_BLOCK: return [16, 16, 16, 16, 16, 16];
+        case BlockType.BEDROCK: return [17, 17, 17, 17, 17, 17];
         default: return [0, 0, 0, 0, 0, 0];
     }
 }
