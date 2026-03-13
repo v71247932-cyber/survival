@@ -8,19 +8,27 @@ export class UIManager {
 
     private initDOM() {
         this.container.innerHTML = `
-            <div id="stats" style="position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); display: flex; gap: 80px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Inter', sans-serif;">
+            <div id="stats" style="position: absolute; bottom: 320px; left: 50%; transform: translateX(-50%); display: flex; gap: 80px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Inter', sans-serif;">
                 <div id="healthStat" style="display: flex; align-items: center; gap: 10px; font-weight: bold; background: rgba(0,10,20,0.6); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);">Health: ❤❤❤❤❤❤</div>
                 <div id="hungerStat" style="display: flex; align-items: center; gap: 10px; font-weight: bold; background: rgba(0,10,20,0.6); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);">Hunger: 🍗🍗🍗🍗🍗</div>
             </div>
             
-            <div id="hotbar-container" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; padding: 6px; background: rgba(0,10,20,0.8); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                ${Array(9).fill(0).map((_, i) => `<div class="slot hotbar-slot" id="hotbar-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);"></div>`).join('')}
+            <div id="persistent-hud" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: auto;">
+                <!-- Main Inventory Grid (Persistent) -->
+                <div id="main-inventory" style="display: grid; grid-template-columns: repeat(9, 46px); grid-template-rows: repeat(3, 46px); gap: 6px; padding: 10px; background: rgba(0,10,20,0.6); border: 2px solid rgba(255,255,255,0.05); border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 10px 40px rgba(0,0,0,0.4);">
+                     ${Array(27).fill(0).map((_, i) => `<div class="slot" id="main-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px;"></div>`).join('')}
+                </div>
+                
+                <!-- Hotbar -->
+                <div id="hotbar-container" style="display: flex; gap: 6px; padding: 6px; background: rgba(0,10,20,0.8); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    ${Array(9).fill(0).map((_, i) => `<div class="slot hotbar-slot" id="hotbar-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);"></div>`).join('')}
+                </div>
             </div>
             
             <div id="inventory-screen" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, rgba(20,30,48,0.95), rgba(36,59,85,0.95)); border: 2px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); backdrop-filter: blur(20px); flex-direction: column; gap: 20px; font-family: 'Inter', sans-serif; color: white; z-index: 1001;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase;">Crafting</h2>
-                    <div style="font-size: 12px; color: rgba(255,255,255,0.4);">SHARPEN YOUR TOOLS</div>
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase;">Crafting Station</h2>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.4);">RESOURCES READY</div>
                 </div>
                 <div style="display: flex; gap: 30px; align-items: center; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
                     <div id="crafting-grid" style="display: grid; grid-template-columns: repeat(2, 46px); grid-template-rows: repeat(2, 46px); gap: 6px;">
@@ -28,11 +36,6 @@ export class UIManager {
                     </div>
                     <div style="font-weight: 200; font-size: 32px; color: rgba(255,255,255,0.2);">→</div>
                     <div class="slot" id="crafting-result" style="width: 56px; height: 56px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 20px rgba(255,255,255,0.05);"></div>
-                </div>
-                
-                <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">Backpack</h2>
-                <div id="main-inventory" style="display: grid; grid-template-columns: repeat(9, 46px); grid-template-rows: repeat(3, 46px); gap: 6px;">
-                     ${Array(27).fill(0).map((_, i) => `<div class="slot" id="main-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px;"></div>`).join('')}
                 </div>
             </div>
             
