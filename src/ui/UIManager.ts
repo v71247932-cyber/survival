@@ -35,7 +35,7 @@ export class UIManager {
             
             <div id="main-menu" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('/textures/dirt.png') repeat; background-size: 64px 64px; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; z-index: 1000;">
                 <div style="background: rgba(0,0,0,0.8); padding: 40px; border: 4px solid #555; color: white; text-align: center; font-family: 'Courier New', monospace;">
-                    <h1 style="margin-top: 0; color: #aaa;">Survival Game</h1>
+                    <h1 style="margin-top: 0; color: #aaa;">Survival Blocks</h1>
                     <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 30px;">
                         <input id="menu-username" type="text" placeholder="Username" style="padding: 10px; font-family: inherit; font-size: 16px; background: #333; color: white; border: 2px solid #555;" value="Player${Math.floor(Math.random() * 1000)}" />
                         <input id="menu-ip" type="text" placeholder="Server IP (e.g. wss://your-server.onrender.com or localhost:8080)" style="padding: 10px; font-family: inherit; font-size: 16px; background: #333; color: white; border: 2px solid #555;" value="localhost:8080" />
