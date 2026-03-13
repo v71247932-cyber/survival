@@ -19,6 +19,16 @@ export class NetworkManager {
         this.world = world;
         this.entityManager = entityManager;
         this.player = player;
+
+        window.addEventListener('local_mob_spawn', (e: any) => {
+            const mob = e.detail;
+            this.send({
+                type: 'mob_spawn',
+                id: (mob as any).id,
+                isHostile: mob.isHostile,
+                position: { x: mob.mesh.position.x, y: mob.mesh.position.y, z: mob.mesh.position.z }
+            });
+        });
     }
 
     public connect(ip: string, username: string) {
@@ -101,9 +111,26 @@ export class NetworkManager {
                 const event = new CustomEvent('chat_message', { detail: data });
                 window.dispatchEvent(event);
                 break;
+            case 'mob_spawn':
+                this.entityManager.addNetworkMob(data.id, data.isHostile, data.position);
+                break;
+            case 'mob_move':
+                this.entityManager.updateNetworkMob(data.id, data.position);
+                break;
             default:
                 console.log(`[Network] Unhandled message type: ${data.type}`);
         }
+    }
+
+    public isHost(): boolean {
+        if (!this.connected) return true; // Offline is always host
+        const others = this.entityManager.getRemotePlayerIds();
+        if (others.length === 0) return true;
+
+        // Host is the one with the lowest lexicographical ID
+        const allIds = [this.localPlayerId, ...others];
+        allIds.sort();
+        return allIds[0] === this.localPlayerId;
     }
 
     public send(data: any) {
@@ -133,6 +160,18 @@ export class NetworkManager {
             });
             this.lastSentPos.copy(pPos);
             this.lastSentRotY = rotY;
+        }
+
+        // Broadast mob moves if host
+        if (this.isHost()) {
+            const mobs = this.entityManager.getMobs();
+            for (const mob of mobs) {
+                this.send({
+                    type: 'mob_move',
+                    id: (mob as any).id,
+                    position: { x: mob.mesh.position.x, y: mob.mesh.position.y, z: mob.mesh.position.z }
+                });
+            }
         }
     }
 }

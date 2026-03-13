@@ -12,7 +12,7 @@ interface PlayerState {
     rotation: { y: number };
 }
 
-const clients = new Map < WebSocket, PlayerState> ();
+const clients = new Map<WebSocket, PlayerState>();
 let nextClientId = 1;
 
 wss.on('connection', (ws) => {
@@ -113,6 +113,21 @@ function handleClientMessage(ws: WebSocket, state: PlayerState, data: any) {
                 y: data.y,
                 z: data.z,
                 blockType: data.blockType
+            }, ws);
+            break;
+        case 'mob_spawn':
+            broadcast({
+                type: 'mob_spawn',
+                id: data.id,
+                isHostile: data.isHostile,
+                position: data.position
+            }, ws);
+            break;
+        case 'mob_move':
+            broadcast({
+                type: 'mob_move',
+                id: data.id,
+                position: data.position
             }, ws);
             break;
         default:

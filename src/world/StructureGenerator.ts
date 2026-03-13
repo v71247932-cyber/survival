@@ -37,6 +37,15 @@ export class StructureGenerator {
                 this.buildVillageHouse(chunk, localX, y + 1, localZ);
             }
         }
+        else if (strRand >= 0.07 && strRand < 0.08) { // 1% chance for a temple
+            const localX = Math.floor(this.random(chunk.dx, chunk.dz, 10) * (CHUNK_WIDTH - 10)) + 5;
+            const localZ = Math.floor(this.random(chunk.dx, chunk.dz, 11) * (CHUNK_WIDTH - 10)) + 5;
+            const y = heightmap[localX][localZ];
+
+            if (y > 45 && y < 80) {
+                this.buildTemple(chunk, localX, y + 1, localZ);
+            }
+        }
 
         // Dungeon (Underground)
         const dngRand = this.random(chunk.dx, chunk.dz, 6);
@@ -112,6 +121,24 @@ export class StructureGenerator {
 
         // Add a gravel path block outside door
         chunk.setBlock(x + w + 1, y - 1, z, BlockType.GRAVEL);
+
+        // Simple road generation: 50% chance to spawn a road segment
+        if (this.random(chunk.dx, chunk.dz, 12) < 0.5) {
+            const axis = this.random(chunk.dx, chunk.dz, 13) < 0.5 ? 'x' : 'z';
+            const len = 10;
+            for (let i = 1; i < len; i++) {
+                const rx = axis === 'x' ? x + w + 1 + i : x + w + 1;
+                const rz = axis === 'z' ? z + i : z;
+
+                // Only place road if it's roughly at the same height (staying on surface)
+                const lx = rx % CHUNK_WIDTH;
+                const lz = rz % CHUNK_WIDTH;
+                // If within chunk bounds for road segment
+                if (lx >= 0 && lx < CHUNK_WIDTH && lz >= 0 && lz < CHUNK_WIDTH) {
+                    chunk.setBlock(rx, y - 1, rz, BlockType.GRAVEL);
+                }
+            }
+        }
     }
 
     private buildDungeon(chunk: Chunk, x: number, y: number, z: number) {
@@ -132,5 +159,50 @@ export class StructureGenerator {
         }
         // Spawner mockup
         chunk.setBlock(x, y, z, BlockType.BRICKS);
+    }
+
+    private buildTemple(chunk: Chunk, x: number, y: number, z: number) {
+        // Larger 7x7 sandstone temple with a pyramid-like roof
+        const radius = 3;
+        for (let ix = -radius; ix <= radius; ix++) {
+            for (let iz = -radius; iz <= radius; iz++) {
+                // Foundation
+                chunk.setBlock(x + ix, y - 1, z + iz, BlockType.SANDSTONE);
+
+                // Walls
+                if (Math.abs(ix) === radius || Math.abs(iz) === radius) {
+                    for (let iy = 0; iy < 4; iy++) {
+                        chunk.setBlock(x + ix, y + iy, z + iz, BlockType.SANDSTONE);
+                        // Add some glass "windows"
+                        if (iy === 2 && (ix === 0 || iz === 0)) {
+                            chunk.setBlock(x + ix, y + iy, z + iz, BlockType.GLASS);
+                        }
+                    }
+                } else {
+                    // Hollow interior
+                    for (let iy = 0; iy < 4; iy++) {
+                        chunk.setBlock(x + ix, y + iy, z + iz, BlockType.AIR);
+                    }
+                }
+            }
+        }
+
+        // Pyramid Roof
+        for (let r = radius; r >= 0; r--) {
+            const h = 4 + (radius - r);
+            for (let ix = -r; ix <= r; ix++) {
+                for (let iz = -r; iz <= r; iz++) {
+                    chunk.setBlock(x + ix, y + h, z + iz, BlockType.SANDSTONE);
+                }
+            }
+        }
+
+        // Entrance
+        chunk.setBlock(x + radius, y, z, BlockType.AIR);
+        chunk.setBlock(x + radius, y + 1, z, BlockType.AIR);
+
+        // Treasure/Statue in center
+        chunk.setBlock(x, y, z, BlockType.GOLD_BLOCK);
+        chunk.setBlock(x, y + 1, z, BlockType.GOLD_BLOCK);
     }
 }

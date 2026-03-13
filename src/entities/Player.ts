@@ -101,15 +101,28 @@ export class Player {
         // Apply gravity
         this.velocity.y -= this.gravity * delta;
 
-        // Movement forces
-        this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
-        this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
-        this.direction.normalize();
+        // Local movement vector relative to camera
+        const localMove = new THREE.Vector3(
+            Number(this.moveRight) - Number(this.moveLeft),
+            0,
+            Number(this.moveBackward) - Number(this.moveForward)
+        );
+        localMove.normalize();
 
         const currentSpeed = this.isCrouching ? this.speed * 0.5 : (this.isRunning ? this.speed * this.runMultiplier : this.speed);
 
-        if (this.moveForward || this.moveBackward) this.velocity.z -= this.direction.z * currentSpeed * delta * 15;
-        if (this.moveLeft || this.moveRight) this.velocity.x -= this.direction.x * currentSpeed * delta * 15;
+        // Apply camera yaw
+        const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+        euler.setFromQuaternion(this.camera.quaternion);
+        euler.x = 0; // Ignore pitch to keep movement horizontal
+        euler.z = 0;
+
+        localMove.applyEuler(euler);
+
+        if (this.moveForward || this.moveBackward || this.moveLeft || this.moveRight) {
+            this.velocity.x += localMove.x * currentSpeed * delta * 15;
+            this.velocity.z += localMove.z * currentSpeed * delta * 15;
+        }
 
         // Friction
         const friction = 10.0;

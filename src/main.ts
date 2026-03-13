@@ -168,7 +168,7 @@ window.addEventListener('chat_message', (e: Event) => {
 });
 
 // Entities
-const entityManager = new EntityManager(scene);
+const entityManager = new EntityManager(scene, world, player);
 
 // Network
 const networkManager = new NetworkManager(world, entityManager, player);
@@ -214,7 +214,7 @@ function animate() {
     player.update(delta);
 
     // Update entities
-    entityManager.update(delta);
+    entityManager.update(delta, networkManager.isHost());
 
     // Update network
     networkManager.update();

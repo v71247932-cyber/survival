@@ -85,21 +85,20 @@ export class EntityManager {
     private mobs: Mob[] = [];
     private remotePlayers: Map<string, RemotePlayer> = new Map();
     private scene: THREE.Scene;
-    // private world: World;
-    // private player: Player;
+    private world: World;
+    private player: Player;
 
-    constructor(scene: THREE.Scene) {
+    constructor(scene: THREE.Scene, world: World, player: Player) {
         this.scene = scene;
-        // this.world = world;
-        // this.player = player;
+        this.world = world;
+        this.player = player;
     }
 
-    public update(delta: number) {
-        // Only spawn mobs if in singleplayer or if we define this client as the "host"
-        // For this prototype, we'll keep local mob spawning but ideally the server handles it
-        // if (Math.random() < 0.005 && this.mobs.length < 5) {
-        //     this.spawnMob();
-        // }
+    public update(delta: number, isHost: boolean) {
+        // Only spawn mobs if in singleplayer or if this client is the "host"
+        if (isHost && Math.random() < 0.005 && this.mobs.length < 5) {
+            this.spawnMob();
+        }
 
         for (const mob of this.mobs) {
             mob.update(delta);
@@ -108,6 +107,14 @@ export class EntityManager {
         for (const remotePlayer of this.remotePlayers.values()) {
             remotePlayer.update(delta);
         }
+    }
+
+    public getMobs() {
+        return this.mobs;
+    }
+
+    public getRemotePlayerIds(): string[] {
+        return Array.from(this.remotePlayers.keys());
     }
 
     // --- Remote Players ---
@@ -142,23 +149,55 @@ export class EntityManager {
             rp.dispose();
         }
         this.remotePlayers.clear();
+
+        // Also clear mobs if we are joining a server (mobs should come from host)
+        for (const mob of this.mobs) {
+            this.scene.remove(mob.mesh);
+        }
+        this.mobs = [];
     }
 
-    // private spawnMob() {
-    //     const px = this.player.camera.position.x;
-    //     const pz = this.player.camera.position.z;
+    // --- Networked Mobs ---
 
-    //     const angle = Math.random() * Math.PI * 2;
-    //     const dist = 10 + Math.random() * 10;
+    public addNetworkMob(id: string, isHostile: boolean, pos: { x: number, y: number, z: number }) {
+        // Check if mob already exists
+        if (this.mobs.some(m => (m as any).id === id)) return;
 
-    //     const sx = px + Math.cos(angle) * dist;
-    //     const sz = pz + Math.sin(angle) * dist;
-    //     const sy = this.player.camera.position.y + 10; // Drop from above
+        const mob = new Mob(this.world, new THREE.Vector3(pos.x, pos.y, pos.z), isHostile, this.player);
+        (mob as any).id = id;
+        this.scene.add(mob.mesh);
+        this.mobs.push(mob);
+    }
 
-    //     const isHostile = Math.random() < 0.3; // 30% hostile
-    //     const mob = new Mob(this.world, new THREE.Vector3(sx, sy, sz), isHostile, this.player);
+    public updateNetworkMob(id: string, pos: { x: number, y: number, z: number }) {
+        const mob = this.mobs.find(m => (m as any).id === id);
+        if (mob) {
+            mob.mesh.position.set(pos.x, pos.y, pos.z);
+        }
+    }
 
-    //     this.scene.add(mob.mesh);
-    //     this.mobs.push(mob);
-    // }
+    private spawnMob() {
+        const px = this.player.camera.position.x;
+        const pz = this.player.camera.position.z;
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 10 + Math.random() * 10;
+
+        const sx = px + Math.cos(angle) * dist;
+        const sz = pz + Math.sin(angle) * dist;
+        const sy = this.player.camera.position.y + 10; // Drop from above
+
+        const isHostile = Math.random() < 0.3; // 30% hostile
+        const mob = new Mob(this.world, new THREE.Vector3(sx, sy, sz), isHostile, this.player);
+
+        // Generate a simple unique ID for the mob
+        (mob as any).id = `mob_${Math.random().toString(36).substr(2, 9)}`;
+
+        this.scene.add(mob.mesh);
+        this.mobs.push(mob);
+
+        // Notify network
+        const event = new CustomEvent('local_mob_spawn', { detail: mob });
+        window.dispatchEvent(event);
+    }
 }
