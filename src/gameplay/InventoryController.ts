@@ -92,7 +92,7 @@ export class InventoryController {
                 this.draggedSource = null;
                 this.render();
             } else {
-                // PICK UP ITEM
+                // PICK UP ITEM / QUICK MOVE
                 if (slotType === 'crafting' && index === -1) {
                     // Logic to take crafting result
                     const grid2D = [
@@ -122,6 +122,27 @@ export class InventoryController {
 
                 const slot = slotType === 'hotbar' ? this.inventory.hotbar[index] : (slotType === 'main' ? this.inventory.main[index] : this.inventory.craftingGrid[index]);
                 if (slot && slot.item !== 0) {
+                    // --- QUICK MOVE LOGIC ---
+                    if (slotType === 'hotbar' || slotType === 'main') {
+                        // Try moving to crafting grid empty slot
+                        const emptyCraftingIdx = this.inventory.craftingGrid.findIndex(s => s.item === 0);
+                        if (emptyCraftingIdx !== -1) {
+                            this.inventory.craftingGrid[emptyCraftingIdx] = { ...slot };
+                            if (slotType === 'hotbar') this.inventory.hotbar[index] = { item: 0, count: 0 };
+                            else this.inventory.main[index] = { item: 0, count: 0 };
+                            this.render();
+                            return;
+                        }
+                    } else if (slotType === 'crafting') {
+                        // Try moving back to inventory
+                        if (this.inventory.addItem(slot.item, slot.count)) {
+                            this.inventory.craftingGrid[index] = { item: 0, count: 0 };
+                            this.render();
+                            return;
+                        }
+                    }
+                    // ------------------------
+
                     this.draggedSource = { type: slotType, index };
                     this.render();
                 }
