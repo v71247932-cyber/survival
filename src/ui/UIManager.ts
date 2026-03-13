@@ -37,36 +37,14 @@ export class UIManager {
             </div>
             
             <div id="main-menu" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)); display: flex; justify-content: center; align-items: center; pointer-events: auto; z-index: 1000; font-family: 'Inter', sans-serif;">
-                <div style="display: flex; gap: 40px; align-items: stretch; max-width: 1000px; width: 95%;">
-                    <!-- Left: Menu Controls -->
-                    <div style="background: rgba(10,20,30,0.8); padding: 50px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); color: white; text-align: center; box-shadow: 0 30px 100px rgba(0,0,0,0.5); backdrop-filter: blur(15px); flex: 1;">
-                        <h1 style="margin-top: 0; font-size: 42px; font-weight: 900; background: linear-gradient(45deg, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; margin-bottom: 5px;">ANTIGRAVITY</h1>
-                        <p style="color: rgba(255,255,255,0.4); margin-bottom: 40px; font-size: 14px;">ULTIMATE SURVIVAL EXPERIENCE</p>
-                        <div style="display: flex; flex-direction: column; gap: 15px;">
-                            <input id="menu-username" type="text" placeholder="Username" style="padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" value="Player${Math.floor(Math.random() * 1000)}" />
-                            <input id="menu-ip" type="text" placeholder="Server Address" style="padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" value="localhost:8080" />
-                            <button id="btn-singleplayer" style="padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; background: #fff; color: #000; border: none; cursor: pointer;">Start Adventure</button>
-                            <button id="btn-multiplayer" style="padding: 16px; border-radius: 12px; font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">Connect to Realm</button>
-                        </div>
-                    </div>
-
-                    <!-- Right: Menu Crafting -->
-                    <div id="menu-crafting" style="background: rgba(10,20,30,0.8); padding: 30px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); color: white; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 30px 100px rgba(0,0,0,0.5); backdrop-filter: blur(15px); flex: 1.2;">
-                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #fff; text-transform: uppercase;">Pre-Game Crafting</h2>
-                        </div>
-                        <div style="display: flex; gap: 20px; align-items: center; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px;">
-                            <div style="display: grid; grid-template-columns: repeat(2, 46px); grid-template-rows: repeat(2, 46px); gap: 6px;">
-                                 ${Array(4).fill(0).map((_, i) => `<div class="slot part-of-crafting" id="menu-crafting-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,1.05); border-radius: 8px;"></div>`).join('')}
-                            </div>
-                            <div style="font-size: 24px; color: rgba(255,255,255,0.2);">→</div>
-                            <div class="slot" id="menu-crafting-result" style="width: 56px; height: 56px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; justify-content: center; align-items: center;"></div>
-                        </div>
-                        <h2 style="margin: 0; font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.6);">Initial Supplies</h2>
-                        <div style="display: grid; grid-template-columns: repeat(9, 44px); gap: 4px;">
-                             ${Array(18).fill(0).map((_, i) => `<div class="slot" id="menu-main-${i}" style="width: 44px; height: 44px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px;"></div>`).join('')}
-                        </div>
-                        <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.3); font-style: italic;">Note: Items crafted here will start with you in the world.</p>
+                <div style="background: rgba(10,20,30,0.8); padding: 50px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); color: white; text-align: center; box-shadow: 0 30px 100px rgba(0,0,0,0.5); backdrop-filter: blur(15px); max-width: 400px; width: 90%;">
+                    <h1 style="margin-top: 0; font-size: 42px; font-weight: 900; background: linear-gradient(45deg, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; margin-bottom: 5px;">ANTIGRAVITY</h1>
+                    <p style="color: rgba(255,255,255,0.4); margin-bottom: 40px; font-size: 14px;">ULTIMATE SURVIVAL EXPERIENCE</p>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <input id="menu-username" type="text" placeholder="Username" style="padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" value="Player${Math.floor(Math.random() * 1000)}" />
+                        <input id="menu-ip" type="text" placeholder="Server Address" style="padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" value="localhost:8080" />
+                        <button id="btn-singleplayer" style="padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; background: #fff; color: #000; border: none; cursor: pointer;">Start Adventure</button>
+                        <button id="btn-multiplayer" style="padding: 16px; border-radius: 12px; font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">Connect to Realm</button>
                     </div>
                 </div>
             </div>
