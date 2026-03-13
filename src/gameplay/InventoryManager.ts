@@ -3,6 +3,7 @@ import { ItemID, InventorySlot } from './Items';
 export class InventoryManager {
     public hotbar: InventorySlot[] = Array(9).fill({ item: ItemID.NONE, count: 0 });
     public main: InventorySlot[] = Array(27).fill({ item: ItemID.NONE, count: 0 });
+    public craftingGrid: InventorySlot[] = Array(4).fill({ item: ItemID.NONE, count: 0 });
     public selectedHotbarSlot = 0;
 
     constructor() {

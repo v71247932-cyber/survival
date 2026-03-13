@@ -1,9 +1,11 @@
 import { InventoryManager } from './InventoryManager';
 import { UIManager } from '../ui/UIManager';
+import { CraftingSystem } from './CraftingSystem';
 
 export class InventoryController {
     private inventory: InventoryManager;
     private ui: UIManager;
+    private crafting: CraftingSystem;
 
     // Drag state
     private draggedSource: { type: 'hotbar' | 'main' | 'crafting', index: number } | null = null;
@@ -11,6 +13,7 @@ export class InventoryController {
     constructor(inventory: InventoryManager, ui: UIManager) {
         this.inventory = inventory;
         this.ui = ui;
+        this.crafting = new CraftingSystem();
 
         this.bindEvents();
         this.render();
@@ -45,27 +48,44 @@ export class InventoryController {
             if (!id) return;
 
             const parts = id.split('-');
-            const type = parts[0] as 'hotbar' | 'main' | 'crafting';
-            const index = parts[1] === 'result' ? -1 : parseInt(parts[1]);
+            const isMenu = parts[0] === 'menu';
+            const type = isMenu ? parts[1] : parts[0];
+            const indexStr = isMenu ? parts[2] : parts[1];
+            const index = indexStr === 'result' ? -1 : parseInt(indexStr);
+
+            const slotType = type as 'hotbar' | 'main' | 'crafting';
 
             if (this.draggedSource) {
                 // DROP/MOVE ITEM
                 const source = this.draggedSource;
 
-                if (type === 'crafting' && index === -1) {
-                    // Cannot "drop" into result slot
+                if (slotType === 'crafting' && index === -1) {
                     this.draggedSource = null;
                     this.render();
                     return;
                 }
 
-                // Swap or move logic
-                if (source.type === 'hotbar' || source.type === 'main') {
-                    if (type === 'hotbar' || type === 'main') {
-                        this.inventory.swapSlots(source.type, source.index, type, index);
-                    } else if (type === 'crafting') {
-                        // Simplified: move from inv to crafting
-                        // (Usually you'd want a separate manager for the crafting grid content)
+                // Move logic
+                if (slotType === 'crafting') {
+                    // Swap between source and crafting grid
+                    const sourceSlot = source.type === 'hotbar' ? this.inventory.hotbar[source.index] : (source.type === 'main' ? this.inventory.main[source.index] : this.inventory.craftingGrid[source.index]);
+                    const targetSlot = this.inventory.craftingGrid[index];
+
+                    if (source.type === 'hotbar') this.inventory.hotbar[source.index] = targetSlot;
+                    else if (source.type === 'main') this.inventory.main[source.index] = targetSlot;
+                    else this.inventory.craftingGrid[source.index] = targetSlot;
+
+                    this.inventory.craftingGrid[index] = sourceSlot;
+                } else {
+                    if (source.type === 'crafting') {
+                        const sourceSlot = this.inventory.craftingGrid[source.index];
+                        const targetSlot = slotType === 'hotbar' ? this.inventory.hotbar[index] : this.inventory.main[index];
+
+                        this.inventory.craftingGrid[source.index] = targetSlot;
+                        if (slotType === 'hotbar') this.inventory.hotbar[index] = sourceSlot;
+                        else this.inventory.main[index] = sourceSlot;
+                    } else {
+                        this.inventory.swapSlots(source.type, source.index, slotType, index);
                     }
                 }
 
@@ -73,14 +93,36 @@ export class InventoryController {
                 this.render();
             } else {
                 // PICK UP ITEM
-                if (type === 'crafting' && index === -1) {
-                    // Logic to "take" result would go here
+                if (slotType === 'crafting' && index === -1) {
+                    // Logic to take crafting result
+                    const grid2D = [
+                        [this.inventory.craftingGrid[0], this.inventory.craftingGrid[1]],
+                        [this.inventory.craftingGrid[2], this.inventory.craftingGrid[3]]
+                    ];
+                    const recipe = this.crafting.checkRecipe(grid2D);
+                    if (recipe) {
+                        // We need a stable ItemID reference since it's imported in Items.ts
+                        const ItemID_NONE = 0;
+                        if (this.inventory.addItem(recipe.result.item, recipe.result.count)) {
+                            // Consume ingredients
+                            for (let j = 0; j < 4; j++) {
+                                if (this.inventory.craftingGrid[j].item !== ItemID_NONE) {
+                                    const slot = this.inventory.craftingGrid[j];
+                                    this.inventory.craftingGrid[j] = { item: slot.item, count: slot.count - 1 };
+                                    if (this.inventory.craftingGrid[j].count <= 0) {
+                                        this.inventory.craftingGrid[j] = { item: ItemID_NONE, count: 0 };
+                                    }
+                                }
+                            }
+                            this.render();
+                        }
+                    }
                     return;
                 }
 
-                const slot = type === 'hotbar' ? this.inventory.hotbar[index] : (type === 'main' ? this.inventory.main[index] : null);
+                const slot = slotType === 'hotbar' ? this.inventory.hotbar[index] : (slotType === 'main' ? this.inventory.main[index] : this.inventory.craftingGrid[index]);
                 if (slot && slot.item !== 0) {
-                    this.draggedSource = { type, index };
+                    this.draggedSource = { type: slotType, index };
                     this.render();
                 }
             }
@@ -98,15 +140,43 @@ export class InventoryController {
             }
         }
 
-        // Main inventory
+        // Main inventory (including menu clones)
         for (let i = 0; i < 27; i++) {
             const slot = this.inventory.main[i];
-            const el = document.getElementById(`main-${i}`);
-            if (el) {
-                if (slot.item === 0) el.innerHTML = '';
-                else el.innerHTML = `${UIManager.renderItemIcon(slot.item)} <span class="item-count">${slot.count > 1 ? slot.count : ''}</span>`;
-            }
+            const els = [document.getElementById(`main-${i}`), document.getElementById(`menu-main-${i}`)];
+            els.forEach(el => {
+                if (el) {
+                    if (slot.item === 0) el.innerHTML = '';
+                    else el.innerHTML = `${UIManager.renderItemIcon(slot.item)} <span class="item-count">${slot.count > 1 ? slot.count : ''}</span>`;
+                }
+            });
         }
+
+        // Crafting Grid
+        for (let i = 0; i < 4; i++) {
+            const slot = this.inventory.craftingGrid[i];
+            const els = [document.getElementById(`crafting-${i}`), document.getElementById(`menu-crafting-${i}`)];
+            els.forEach(el => {
+                if (el) {
+                    if (slot.item === 0) el.innerHTML = '';
+                    else el.innerHTML = `${UIManager.renderItemIcon(slot.item)} <span class="item-count">${slot.count > 1 ? slot.count : ''}</span>`;
+                }
+            });
+        }
+
+        // Crafting Result
+        const grid2D = [
+            [this.inventory.craftingGrid[0], this.inventory.craftingGrid[1]],
+            [this.inventory.craftingGrid[2], this.inventory.craftingGrid[3]]
+        ];
+        const recipe = this.crafting.checkRecipe(grid2D);
+        const resultEls = [document.getElementById('crafting-result'), document.getElementById('menu-crafting-result')];
+        resultEls.forEach(el => {
+            if (el) {
+                if (recipe) el.innerHTML = `${UIManager.renderItemIcon(recipe.result.item)} <span class="item-count">${recipe.result.count > 1 ? recipe.result.count : ''}</span>`;
+                else el.innerHTML = '';
+            }
+        });
 
         this.ui.updateHotbarSelection(this.inventory.selectedHotbarSlot);
     }
