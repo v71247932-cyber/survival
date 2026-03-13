@@ -44,6 +44,9 @@ export class World {
                 this.scene.remove(chunk.mesh);
                 if (chunk.mesh.geometry) chunk.mesh.geometry.dispose();
                 this.chunks.delete(key);
+            } else if (chunk.isDirty) {
+                // Optimize: Rebuild mesh if dirty
+                chunk.buildMesh(this.materials);
             }
         }
     }
@@ -82,7 +85,7 @@ export class World {
         if (lz < 0) lz += CHUNK_WIDTH;
 
         chunk.setBlock(lx, Math.floor(y), lz, type);
-        chunk.buildMesh(this.materials);
+        // buildMesh is now called in update() if chunk is dirty
 
         // Dispatch event for network
         if (!skipEvent) {

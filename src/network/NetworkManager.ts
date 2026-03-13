@@ -29,6 +29,15 @@ export class NetworkManager {
                 position: { x: mob.mesh.position.x, y: mob.mesh.position.y, z: mob.mesh.position.z }
             });
         });
+
+        window.addEventListener('local_block_update', (e: any) => {
+            const { x, y, z, type } = e.detail;
+            this.send({
+                type: 'block_update',
+                x, y, z,
+                blockType: type
+            });
+        });
     }
 
     public connect(ip: string, username: string) {

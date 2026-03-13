@@ -174,19 +174,7 @@ const entityManager = new EntityManager(scene, world, player);
 const networkManager = new NetworkManager(world, entityManager, player);
 (window as any).networkManager = networkManager; // Make accessible for UI to trigger connect
 
-// Setup Block Update Synchronization
-window.addEventListener('local_block_update', (e: Event) => {
-    const customEvent = e as CustomEvent;
-    if (networkManager.connected) {
-        networkManager.send({
-            type: 'block_update',
-            x: customEvent.detail.x,
-            y: customEvent.detail.y,
-            z: customEvent.detail.z,
-            blockType: customEvent.detail.type
-        });
-    }
-});
+// Redundant listener removed, logic moved to NetworkManager.ts
 
 // Main Loop
 const clock = new THREE.Clock();

@@ -244,8 +244,21 @@ export class Player {
                     const blockToPlace = getBlockTypeFromItem(selected.item);
 
                     if (blockToPlace !== BlockType.AIR) {
-                        this.world.setBlock(lastAirPos.x, lastAirPos.y, lastAirPos.z, blockToPlace);
-                        this.inventory.consumeSelectedSlot();
+                        // Check if block intersects player
+                        const pPos = this.camera.position;
+                        const w = 0.4;
+                        const h = this.isCrouching ? this.crouchHeight : this.normalHeight;
+
+                        const intersects = (
+                            lastAirPos.x >= Math.floor(pPos.x - w) && lastAirPos.x <= Math.floor(pPos.x + w) &&
+                            lastAirPos.z >= Math.floor(pPos.z - w) && lastAirPos.z <= Math.floor(pPos.z + w) &&
+                            lastAirPos.y >= Math.floor(pPos.y - h) && lastAirPos.y <= Math.floor(pPos.y)
+                        );
+
+                        if (!intersects) {
+                            this.world.setBlock(lastAirPos.x, lastAirPos.y, lastAirPos.z, blockToPlace);
+                            this.inventory.consumeSelectedSlot();
+                        }
                     }
                 }
                 return;
