@@ -2,7 +2,11 @@ import { WebSocketServer, WebSocket } from 'ws';
 import http from 'http';
 
 const port = process.env.PORT || 8080;
-const server = http.createServer();
+const server = http.createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.end('Server is running');
+});
 const wss = new WebSocketServer({ server });
 
 interface PlayerState {

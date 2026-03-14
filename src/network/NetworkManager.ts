@@ -96,15 +96,23 @@ export class NetworkManager {
                 }
             };
 
+            this.ws.onerror = (error) => {
+                console.error('[Network] WebSocket error:', error);
+                this.ws?.close();
+            };
+
             this.ws.onclose = () => {
-                console.log('[Network] Disconnected.');
+                console.log('[Network] Disconnected. Retrying in 3s...');
                 this.connected = false;
                 this.entityManager.clearRemotePlayers();
                 if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
-            };
 
-            this.ws.onerror = (error) => {
-                console.error('[Network] WebSocket error:', error);
+                // Retry connection
+                setTimeout(() => {
+                    if (!this.connected) {
+                        this.connect(ip, username, realm);
+                    }
+                }, 30000); // 30s delay to avoid spamming if server is down, but keep trying
             };
         } catch (e) {
             console.error('[Network] Failed to create WebSocket:', e);
