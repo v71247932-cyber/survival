@@ -21,23 +21,89 @@ export const Recipes: CraftingRecipe[] = [
         ],
         result: { item: ItemID.STICK, count: 4 }
     },
+    // PICKAXES
     {
-        // Wooden Pickaxe
         pattern: [
-            [ItemID.WOOD_PLANKS_BLOCK, ItemID.WOOD_PLANKS_BLOCK],
-            [ItemID.NONE, ItemID.STICK],
-            [ItemID.NONE, ItemID.STICK]
+            [ItemID.WOOD_PLANKS_BLOCK, ItemID.WOOD_PLANKS_BLOCK, ItemID.WOOD_PLANKS_BLOCK],
+            [ItemID.NONE, ItemID.STICK, ItemID.NONE],
+            [ItemID.NONE, ItemID.STICK, ItemID.NONE]
         ],
         result: { item: ItemID.WOODEN_PICKAXE, count: 1 }
     },
     {
-        // Stone Pickaxe
         pattern: [
-            [ItemID.COBBLESTONE_BLOCK, ItemID.COBBLESTONE_BLOCK],
-            [ItemID.NONE, ItemID.STICK],
-            [ItemID.NONE, ItemID.STICK]
+            [ItemID.COBBLESTONE_BLOCK, ItemID.COBBLESTONE_BLOCK, ItemID.COBBLESTONE_BLOCK],
+            [ItemID.NONE, ItemID.STICK, ItemID.NONE],
+            [ItemID.NONE, ItemID.STICK, ItemID.NONE]
         ],
         result: { item: ItemID.STONE_PICKAXE, count: 1 }
+    },
+    {
+        pattern: [
+            [ItemID.IRON_INGOT, ItemID.IRON_INGOT, ItemID.IRON_INGOT],
+            [ItemID.NONE, ItemID.STICK, ItemID.NONE],
+            [ItemID.NONE, ItemID.STICK, ItemID.NONE]
+        ],
+        result: { item: ItemID.IRON_PICKAXE, count: 1 }
+    },
+    {
+        pattern: [
+            [ItemID.GOLD_INGOT, ItemID.GOLD_INGOT, ItemID.GOLD_INGOT],
+            [ItemID.NONE, ItemID.STICK, ItemID.NONE],
+            [ItemID.NONE, ItemID.STICK, ItemID.NONE]
+        ],
+        result: { item: ItemID.GOLD_PICKAXE, count: 1 }
+    },
+    // AXES
+    {
+        pattern: [
+            [ItemID.WOOD_PLANKS_BLOCK, ItemID.WOOD_PLANKS_BLOCK],
+            [ItemID.WOOD_PLANKS_BLOCK, ItemID.STICK],
+            [ItemID.NONE, ItemID.STICK]
+        ],
+        result: { item: ItemID.WOODEN_AXE, count: 1 }
+    },
+    {
+        pattern: [
+            [ItemID.COBBLESTONE_BLOCK, ItemID.COBBLESTONE_BLOCK],
+            [ItemID.COBBLESTONE_BLOCK, ItemID.STICK],
+            [ItemID.NONE, ItemID.STICK]
+        ],
+        result: { item: ItemID.STONE_AXE, count: 1 }
+    },
+    {
+        pattern: [
+            [ItemID.IRON_INGOT, ItemID.IRON_INGOT],
+            [ItemID.IRON_INGOT, ItemID.STICK],
+            [ItemID.NONE, ItemID.STICK]
+        ],
+        result: { item: ItemID.IRON_AXE, count: 1 }
+    },
+    // SHOVELS
+    {
+        pattern: [[ItemID.WOOD_PLANKS_BLOCK], [ItemID.STICK], [ItemID.STICK]],
+        result: { item: ItemID.WOODEN_SHOVEL, count: 1 }
+    },
+    {
+        pattern: [[ItemID.COBBLESTONE_BLOCK], [ItemID.STICK], [ItemID.STICK]],
+        result: { item: ItemID.STONE_SHOVEL, count: 1 }
+    },
+    {
+        pattern: [[ItemID.IRON_INGOT], [ItemID.STICK], [ItemID.STICK]],
+        result: { item: ItemID.IRON_SHOVEL, count: 1 }
+    },
+    // SWORDS
+    {
+        pattern: [[ItemID.WOOD_PLANKS_BLOCK], [ItemID.WOOD_PLANKS_BLOCK], [ItemID.STICK]],
+        result: { item: ItemID.WOODEN_SWORD, count: 1 }
+    },
+    {
+        pattern: [[ItemID.COBBLESTONE_BLOCK], [ItemID.COBBLESTONE_BLOCK], [ItemID.STICK]],
+        result: { item: ItemID.STONE_SWORD, count: 1 }
+    },
+    {
+        pattern: [[ItemID.IRON_INGOT], [ItemID.IRON_INGOT], [ItemID.STICK]],
+        result: { item: ItemID.IRON_SWORD, count: 1 }
     }
 ];
 

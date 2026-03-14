@@ -15,12 +15,35 @@ export enum ItemID {
     SANDSTONE_BLOCK = 13,
     GOLD_BLOCK = 14,
     BEDROCK_BLOCK = 15,
+    IRON_BLOCK = 16,
 
     STICK = 50,
+    IRON_INGOT = 51,
+    GOLD_INGOT = 52,
 
-    // Tools
+    // Tools - Pickaxes
     WOODEN_PICKAXE = 100,
     STONE_PICKAXE = 101,
+    IRON_PICKAXE = 102,
+    GOLD_PICKAXE = 103,
+
+    // Tools - Axes
+    WOODEN_AXE = 110,
+    STONE_AXE = 111,
+    IRON_AXE = 112,
+    GOLD_AXE = 113,
+
+    // Tools - Shovels
+    WOODEN_SHOVEL = 120,
+    STONE_SHOVEL = 121,
+    IRON_SHOVEL = 122,
+    GOLD_SHOVEL = 123,
+
+    // Tools - Swords
+    WOODEN_SWORD = 130,
+    STONE_SWORD = 131,
+    IRON_SWORD = 132,
+    GOLD_SWORD = 133,
 }
 
 export interface InventorySlot {

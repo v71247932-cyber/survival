@@ -158,9 +158,25 @@ export class UIManager {
         };
 
         if (id === 50) return `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-15deg);">🥢</div>`; // Stick
-        if (id >= 100) {
-            const toolColor = id === 101 ? '#aaa' : '#8f683f';
-            return `<div style="font-size: 28px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 2px ${toolColor});">⛏️</div>`;
+        if (id === 51) return `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-10deg);">🥈</div>`; // Iron Ingot
+        if (id === 52) return `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-10deg);">🥇</div>`; // Gold Ingot
+
+        if (id >= 100 && id < 140) {
+            let icon = '⛏️'; // Pickaxe
+            if (id >= 110 && id < 120) icon = '🪓'; // Axe
+            if (id >= 120 && id < 130) icon = '🧹'; // Shovel (nearest emoji)
+            if (id >= 130 && id < 140) icon = '⚔️'; // Sword
+
+            const materialId = id % 10;
+            const colors: Record<number, string> = {
+                0: '#8f683f', // Wood
+                1: '#aaa',    // Stone
+                2: '#eee',    // Iron
+                3: '#ffd700', // Gold
+            };
+            const toolColor = colors[materialId] || '#fff';
+
+            return `<div style="font-size: 28px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 2px ${toolColor});">${icon}</div>`;
         }
 
         const p = palettes[id] || { c1: '#ff00ff', c2: '#880088' };

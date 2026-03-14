@@ -242,52 +242,77 @@ export class Player {
         document.body.appendChild(this.miningProgressEl);
     }
 
-    private updateMining(delta: number) {
+    private updateMining(dt: number) {
+        if (!this.isBreaking) return;
+
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
-        const reach = 5;
-        let p = raycaster.ray.origin;
-        let d = raycaster.ray.direction;
+        const intersects = raycaster.intersectObjects(this.world.children);
 
-        let targetFound = false;
-        for (let i = 0; i < reach; i += 0.1) {
-            const bx = Math.floor(p.x + d.x * i);
-            const by = Math.floor(p.y + d.y * i);
-            const bz = Math.floor(p.z + d.z * i);
+        if (intersects.length > 0 && intersects[0].distance < 5) {
+            const intersect = intersects[0];
+            const pos = intersect.point.clone().add(intersect.face!.normal.clone().multiplyScalar(-0.5));
+            const blockX = Math.floor(pos.x);
+            const blockY = Math.floor(pos.y);
+            const blockZ = Math.floor(pos.z);
+            const targetBlock = this.world.getBlock(blockX, blockY, blockZ);
 
-            const b = this.world.getBlock(bx, by, bz);
-            if (b !== BlockType.AIR && b !== BlockType.WATER) {
-                if (b === BlockType.BEDROCK) {
-                    this.resetMining();
-                    return;
-                }
-
-                // Found a breakable block
-                const currentTarget = { x: bx, y: by, z: bz };
-                if (!this.breakTarget || this.breakTarget.x !== bx || this.breakTarget.y !== by || this.breakTarget.z !== bz) {
-                    this.breakTarget = currentTarget;
-                    this.breakProgress = 0;
-                }
-
-                this.breakProgress += delta;
-                targetFound = true;
-
-                // Update UI
-                if (this.miningProgressEl) {
-                    this.miningProgressEl.style.display = 'block';
-                    const inner = this.miningProgressEl.querySelector('#mining-progress-inner') as HTMLElement;
-                    if (inner) inner.style.width = `${Math.min(100, (this.breakProgress / this.breakTime) * 100)}%`;
-                }
-
-                if (this.breakProgress >= this.breakTime) {
-                    this.breakBlockInternal(bx, by, bz, b);
-                    this.resetMining();
-                }
-                break;
+            if (targetBlock === BlockType.AIR || targetBlock === BlockType.BEDROCK) {
+                this.resetMining();
+                return;
             }
-        }
 
-        if (!targetFound) {
+            if (!this.breakTarget || !this.breakTarget.equals(new THREE.Vector3(blockX, blockY, blockZ))) {
+                this.breakTarget = new THREE.Vector3(blockX, blockY, blockZ);
+                this.breakProgress = 0;
+
+                // --- DYNAMIC MINING SPEED LOGIC ---
+                const selected = this.inventory.getSelectedSlot();
+                const toolId = selected.item;
+
+                // Base hardness
+                let baseHardness = 1.0;
+                if (targetBlock === BlockType.STONE || targetBlock === BlockType.COBBLESTONE) baseHardness = 1.5;
+                if (targetBlock === BlockType.WOOD || targetBlock === BlockType.WOOD_PLANKS) baseHardness = 1.2;
+                if (targetBlock === BlockType.SAND || targetBlock === BlockType.DIRT || targetBlock === BlockType.GRASS) baseHardness = 0.5;
+                if (targetBlock === BlockType.GOLD_BLOCK || targetBlock === BlockType.IRON_BLOCK) baseHardness = 3.0;
+
+                // Tool Efficiency
+                let multiplier = 1.0;
+                const isPickaxe = toolId >= 100 && toolId < 110;
+                const isAxe = toolId >= 110 && toolId < 120;
+                const isShovel = toolId >= 120 && toolId < 130;
+
+                const materialTier = toolId % 10; // 0: Wood, 1: Stone, 2: Iron, 3: Gold
+                const tierMult = [2, 4, 6, 12][materialTier] || 1;
+
+                // Check if tool is correct for block
+                const isBestTool =
+                    (isPickaxe && (targetBlock === BlockType.STONE || targetBlock === BlockType.COBBLESTONE || targetBlock === BlockType.GOLD_BLOCK || targetBlock === BlockType.IRON_BLOCK)) ||
+                    (isAxe && (targetBlock === BlockType.WOOD || targetBlock === BlockType.WOOD_PLANKS)) ||
+                    (isShovel && (targetBlock === BlockType.DIRT || targetBlock === BlockType.SAND || targetBlock === BlockType.GRASS || targetBlock === BlockType.GRAVEL));
+
+                if (isBestTool) multiplier = tierMult;
+                else if (toolId !== 0) multiplier = 1.5; // Any tool is slightly better than hand
+
+                this.breakTime = baseHardness / multiplier;
+                if (this.breakTime < 0.05) this.breakTime = 0.05; // Cap speed
+            }
+
+            this.breakProgress += dt;
+
+            // Visual feedback - simple bar scaling
+            if (this.miningProgressEl) {
+                this.miningProgressEl.style.display = 'block';
+                const percent = Math.min(100, (this.breakProgress / this.breakTime) * 100);
+                this.miningProgressEl.style.width = `${percent}%`;
+            }
+
+            if (this.breakProgress >= this.breakTime) {
+                this.breakBlockInternal(blockX, blockY, blockZ, targetBlock);
+                this.resetMining();
+            }
+        } else {
             this.resetMining();
         }
     }
