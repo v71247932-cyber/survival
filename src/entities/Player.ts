@@ -27,12 +27,11 @@ export class Player {
     private isBreaking = false;
     private breakTarget: THREE.Vector3 | null = null;
     private breakProgress = 0;
-    private breakTime = 0.6; // Seconds to break a block
+    private breakTime = 0.6;
 
     private breakMaterials: THREE.Material[];
     private breakOverlay: THREE.Mesh;
 
-    // Physics properties
     private speed = 10.0;
     private runMultiplier = 1.5;
     private jumpVelocity = 8.0;
@@ -45,15 +44,10 @@ export class Player {
         this.world = world;
         this.controls = new PointerLockControls(camera, domElement);
 
-        // DEFAULT SPAWN: Start high (80) to avoid falling through terrain while chunks load
         this.camera.position.set(0, 80, 0);
 
-        // Break Overlay
         this.breakMaterials = createBreakMaterials();
-        this.breakOverlay = new THREE.Mesh(
-            new THREE.BoxGeometry(1.002, 1.002, 1.002),
-            this.breakMaterials[0]
-        );
+        this.breakOverlay = new THREE.Mesh(new THREE.BoxGeometry(1.002, 1.002, 1.002), this.breakMaterials[0]);
         this.breakOverlay.visible = false;
         this.breakOverlay.frustumCulled = false;
         this.world.scene.add(this.breakOverlay);
@@ -81,82 +75,63 @@ export class Player {
     }
 
     public setSpawn(x: number, z: number) {
-        // High spawn for world sync
         this.camera.position.set(x, 80, z);
         this.velocity.set(0, 0, 0);
-
-        // Reset movement states
-        this.moveForward = false;
-        this.moveBackward = false;
-        this.moveLeft = false;
-        this.moveRight = false;
-        this.isRunning = false;
-        this.isCrouching = false;
+        this.moveForward = this.moveBackward = this.moveLeft = this.moveRight = this.isRunning = this.isCrouching = false;
     }
 
-    // ... rest of the logic remains the same, I'll provide full file for safety
     private onKeyDown(event: KeyboardEvent) {
         switch (event.code) {
-            case 'ArrowUp':
             case 'KeyW': this.moveForward = true; break;
-            case 'ArrowLeft':
             case 'KeyA': this.moveLeft = true; break;
-            case 'ArrowDown':
             case 'KeyS': this.moveBackward = true; break;
-            case 'ArrowRight':
             case 'KeyD': this.moveRight = true; break;
-            case 'Space':
-                if (this.onGround) this.velocity.y = this.jumpVelocity;
-                break;
+            case 'Space': if (this.onGround) this.velocity.y = this.jumpVelocity; break;
             case 'ShiftLeft': this.isRunning = true; break;
-            case 'KeyC':
-            case 'ControlLeft': this.isCrouching = true; break;
+            case 'KeyC': this.isCrouching = true; break;
         }
     }
 
     private onKeyUp(event: KeyboardEvent) {
         switch (event.code) {
-            case 'ArrowUp':
             case 'KeyW': this.moveForward = false; break;
-            case 'ArrowLeft':
             case 'KeyA': this.moveLeft = false; break;
-            case 'ArrowDown':
             case 'KeyS': this.moveBackward = false; break;
-            case 'ArrowRight':
             case 'KeyD': this.moveRight = false; break;
             case 'ShiftLeft': this.isRunning = false; break;
-            case 'KeyC':
-            case 'ControlLeft': this.isCrouching = false; break;
+            case 'KeyC': this.isCrouching = false; break;
         }
     }
 
     public update(delta: number) {
-        if (!this.controls.isLocked) {
+        // ALWAYS apply gravity and collision, even if unlocked
+        this.velocity.y -= this.gravity * delta;
+        if (this.velocity.y < -50) this.velocity.y = -50;
+
+        if (this.controls.isLocked) {
+            if (this.isBreaking) this.updateMining(delta);
+            else this.resetMining();
+
+            const localMove = new THREE.Vector3(
+                Number(this.moveRight) - Number(this.moveLeft),
+                0,
+                Number(this.moveBackward) - Number(this.moveForward)
+            );
+            localMove.normalize();
+            const currentSpeed = this.isCrouching ? this.speed * 0.5 : (this.isRunning ? this.speed * this.runMultiplier : this.speed);
+            const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+            euler.setFromQuaternion(this.camera.quaternion);
+            euler.x = 0;
+            euler.z = 0;
+            localMove.applyEuler(euler);
+
+            if (this.moveForward || this.moveBackward || this.moveLeft || this.moveRight) {
+                this.velocity.x += localMove.x * currentSpeed * delta * 15;
+                this.velocity.z += localMove.z * currentSpeed * delta * 15;
+            }
+        } else {
             this.isBreaking = false;
             this.resetMining();
-            return;
-        }
-
-        if (this.isBreaking) this.updateMining(delta);
-        else this.resetMining();
-
-        this.velocity.y -= this.gravity * delta;
-        const localMove = new THREE.Vector3(
-            Number(this.moveRight) - Number(this.moveLeft),
-            0,
-            Number(this.moveBackward) - Number(this.moveForward)
-        );
-        localMove.normalize();
-        const currentSpeed = this.isCrouching ? this.speed * 0.5 : (this.isRunning ? this.speed * this.runMultiplier : this.speed);
-        const euler = new THREE.Euler(0, 0, 0, 'YXZ');
-        euler.setFromQuaternion(this.camera.quaternion);
-        euler.x = 0;
-        euler.z = 0;
-        localMove.applyEuler(euler);
-
-        if (this.moveForward || this.moveBackward || this.moveLeft || this.moveRight) {
-            this.velocity.x += localMove.x * currentSpeed * delta * 15;
-            this.velocity.z += localMove.z * currentSpeed * delta * 15;
         }
 
         const friction = 10.0;
@@ -190,10 +165,6 @@ export class Player {
                     if (block !== BlockType.AIR && !BlockTransparent[block] || block === BlockType.LEAVES) {
                         if (axis === 'y') {
                             if (this.velocity.y < 0) {
-                                if (this.velocity.y < -15) {
-                                    const damage = Math.floor((Math.abs(this.velocity.y) - 15) * 0.5);
-                                    if (damage > 0) this.survival.takeDamage(damage);
-                                }
                                 pos.y = y + 1 + h;
                                 this.velocity.y = 0;
                                 this.onGround = true;
@@ -231,22 +202,12 @@ export class Player {
             const bz = Math.floor(pos.z);
             const targetBlock = this.world.getBlock(bx, by, bz);
             if (targetBlock === BlockType.AIR || targetBlock === BlockType.BEDROCK || targetBlock === BlockType.WATER) {
-                this.resetMining();
-                return;
+                this.resetMining(); return;
             }
             if (!this.breakTarget || !this.breakTarget.equals(new THREE.Vector3(bx, by, bz))) {
                 this.breakTarget = new THREE.Vector3(bx, by, bz);
                 this.breakProgress = 0;
-                const toolId = this.inventory.getSelectedSlot().item;
-                let hardness = 1.0;
-                if (targetBlock === BlockType.STONE) hardness = 1.5;
-                if (targetBlock === BlockType.WOOD) hardness = 1.2;
-                if (targetBlock === BlockType.SAND || targetBlock === BlockType.DIRT) hardness = 0.5;
-
-                let multiplier = 1.0;
-                const isPickaxe = toolId >= 100 && toolId < 110;
-                if (isPickaxe && targetBlock === BlockType.STONE) multiplier = 4.0;
-                this.breakTime = hardness / multiplier;
+                this.breakTime = 0.5;
             }
             this.breakProgress += dt;
             this.breakOverlay.visible = true;
@@ -254,7 +215,7 @@ export class Player {
             const stage = Math.min(9, Math.floor((this.breakProgress / this.breakTime) * 10));
             this.breakOverlay.material = this.breakMaterials[stage];
             if (this.breakProgress >= this.breakTime) {
-                this.breakBlockInternal(bx, by, bz, targetBlock);
+                this.world.setBlock(bx, by, bz, BlockType.AIR);
                 this.resetMining();
             }
         } else this.resetMining();
@@ -264,12 +225,6 @@ export class Player {
         this.breakTarget = null;
         this.breakProgress = 0;
         if (this.breakOverlay) this.breakOverlay.visible = false;
-    }
-
-    private breakBlockInternal(bx: number, by: number, bz: number, b: BlockType) {
-        const item = getItemFromBlockType(b);
-        if (item !== ItemID.NONE) this.inventory.addItem(item, 1);
-        this.world.setBlock(bx, by, bz, BlockType.AIR);
     }
 
     public placeBlock() {
