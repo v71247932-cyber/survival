@@ -198,9 +198,14 @@ function animate() {
         hungerStat.innerText = 'Hunger: ' + '🍗'.repeat(Math.ceil(player.survival.hunger / 2));
     }
 
-    // Update player & physics (only if chat/inventory and menu aren't open lock)
-    // We can rely on controls.isLocked for this
+    // Update player & physics
     player.update(delta);
+
+    // Update chunks (rebuilds meshes if blocks changed)
+    world.update(camera.position);
+
+    // Update network
+    networkManager.update();
 
     // Move sun with player for simple shadow mapping
     dirLight.position.set(camera.position.x + 50, camera.position.y + 100, camera.position.z + 50);
