@@ -87,6 +87,13 @@ export class Player {
         document.addEventListener('keyup', this.onKeyUp.bind(this));
     }
 
+    public setSpawn(x: number, z: number) {
+        let spawnY = 120;
+        while (spawnY > 0 && this.world.getBlock(x, spawnY - 1, z) === BlockType.AIR) spawnY--;
+        this.camera.position.set(x, spawnY + this.normalHeight, z);
+        this.velocity.set(0, 0, 0);
+    }
+
     private onKeyDown(event: KeyboardEvent) {
         switch (event.code) {
             case 'ArrowUp':

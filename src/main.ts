@@ -53,7 +53,7 @@ const player = new Player(camera, document.body, world);
 
 // UI and Inventory
 const uiLayer = document.getElementById('ui-layer')!;
-const ui = new UIManager(uiLayer);
+const ui = new UIManager(uiLayer, world, player);
 const inventoryCtrl = new InventoryController(player.inventory, ui);
 (window as any).inventoryCtrl = inventoryCtrl;
 
@@ -198,6 +198,10 @@ if (urlRealm) {
     console.log(`[Realm] Detected realm: ${urlRealm}`);
     const username = `Player${Math.floor(Math.random() * 1000)}`;
     const serverIp = 'localhost:8080'; // Default, ideally this should be production server
+
+    // Synchronize world and spawn
+    world.resetSeed(urlRealm);
+    player.setSpawn(0, 0);
 
     // Hide menu and connect
     const menu = document.getElementById('main-menu');

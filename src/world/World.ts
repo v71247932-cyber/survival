@@ -12,10 +12,23 @@ export class World {
     private generator: WorldGenerator;
     private materials: THREE.Material[];
 
-    constructor(scene: THREE.Scene, seed?: number) {
+    constructor(scene: THREE.Scene, seed?: number | string) {
         this.scene = scene;
         this.generator = new WorldGenerator(seed);
         this.materials = createBlockMaterials();
+    }
+
+    public resetSeed(seed: string) {
+        this.generator = new WorldGenerator(seed);
+        this.clearChunks();
+    }
+
+    public clearChunks() {
+        for (const chunk of this.chunks.values()) {
+            this.scene.remove(chunk.mesh);
+            if (chunk.mesh.geometry) chunk.mesh.geometry.dispose();
+        }
+        this.chunks.clear();
     }
 
     public update(playerPos: THREE.Vector3) {

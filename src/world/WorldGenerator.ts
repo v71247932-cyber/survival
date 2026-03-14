@@ -8,9 +8,22 @@ export class WorldGenerator {
     private noise3D = createNoise3D();
     private seedOffset: number;
 
-    constructor(seed?: number) {
-        this.seedOffset = seed || Math.random() * 10000;
-        // In a real app we would seed the noise generator PRNG properly
+    constructor(seed?: number | string) {
+        if (typeof seed === 'string') {
+            this.seedOffset = this.hashString(seed);
+        } else {
+            this.seedOffset = seed || Math.random() * 10000;
+        }
+    }
+
+    private hashString(str: string): number {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return Math.abs(hash) % 10000;
     }
 
     public generateChunk(chunk: Chunk) {

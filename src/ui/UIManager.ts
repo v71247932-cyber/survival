@@ -1,9 +1,16 @@
+import { World } from '../world/World';
+import { Player } from '../entities/Player';
+
 export class UIManager {
     private container: HTMLElement;
+    private world: World;
+    private player: Player;
     private static namePopupTimeout: number | null = null;
 
-    constructor(container: HTMLElement) {
+    constructor(container: HTMLElement, world: World, player: Player) {
         this.container = container;
+        this.world = world;
+        this.player = player;
         this.initDOM();
     }
 
@@ -157,6 +164,12 @@ export class UIManager {
                 const username = inputUsername.value;
                 const ip = inputIp.value;
                 const realm = inputRealm.value.trim();
+
+                if (realm) {
+                    this.world.resetSeed(realm);
+                    this.player.setSpawn(0, 0);
+                }
+
                 if ((window as any).networkManager) {
                     (window as any).networkManager.connect(ip, username, realm);
                 }
