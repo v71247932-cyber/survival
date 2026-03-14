@@ -32,6 +32,13 @@ export class RemotePlayer {
         head.position.y = 1.6; // Top of the model
         head.castShadow = true;
 
+        // Hair (0.42 x 0.15 x 0.42) - Slightly larger to overlay head
+        const hairGeo = new THREE.BoxGeometry(0.42, 0.15, 0.42);
+        const hairMat = new THREE.MeshLambertMaterial({ color: hairColor });
+        const hair = new THREE.Mesh(hairGeo, hairMat);
+        hair.position.y = 1.75;
+        this.group.add(hair);
+
         // Torso (0.6 x 0.7 x 0.3)
         const torsoGeo = new THREE.BoxGeometry(0.6, 0.7, 0.3);
         const torsoMat = new THREE.MeshLambertMaterial({ color: shirtColor });

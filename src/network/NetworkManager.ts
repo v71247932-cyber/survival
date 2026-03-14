@@ -171,6 +171,7 @@ export class NetworkManager {
         const euler = new THREE.Euler().setFromQuaternion(this.player.camera.quaternion, 'YXZ');
         const rotY = euler.y;
 
+        const distSq = this.lastSentPos.distanceToSquared(pPos);
         const rotDiff = Math.abs(this.lastSentRotY - rotY);
 
         // Send if moved more than 0.05 units or rotated more than ~1 degree (OR if it's the first update)
