@@ -84,7 +84,6 @@ export class UIManager {
                 height: 40px;
                 filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
             }
-        `;, StartLine: 68, TargetContent:
         `;
         document.head.appendChild(style);
 
@@ -118,7 +117,7 @@ export class UIManager {
 
     public updateHotbarSelection(index: number) {
         for (let i = 0; i < 9; i++) {
-            const el = document.getElementById(`hotbar - ${ i } `);
+            const el = document.getElementById(`hotbar - ${i} `);
             if (el) {
                 if (i === index) el.classList.add('selected');
                 else el.classList.remove('selected');
@@ -158,7 +157,7 @@ export class UIManager {
             15: { c1: '#333333', c2: '#111111' }, // Bedrock
         };
 
-        if (id === 50) return `< div style = "font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-15deg);" >🥢</div>`; / / Stick
+        if (id === 50) return `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-15deg);">🥢</div>`; // Stick
         if (id >= 100) {
             const toolColor = id === 101 ? '#aaa' : '#8f683f';
             return `<div style="font-size: 28px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 2px ${toolColor});">⛏️</div>`;

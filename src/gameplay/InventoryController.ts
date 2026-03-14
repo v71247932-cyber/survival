@@ -193,54 +193,49 @@ export class InventoryController {
             this.floatingEl.innerHTML = `${UIManager.renderItemIcon(this.heldItem.item)} <span class="item-count">${this.heldItem.count > 1 ? this.heldItem.count : ''}</span>`;
         } else {
             this.floatingEl.style.display = 'none';
+        }    public render() {
+            // Hotbar
+            for (let i = 0; i < 9; i++) {
+                const slot = this.inventory.hotbar[i];
+                const el = document.getElementById(`hotbar-${i}`);
+                if (el) {
+                    if (slot.item === 0) el.innerHTML = '';
+                    else el.innerHTML = `${UIManager.renderItemIcon(slot.item)} <span class="item-count">${slot.count > 1 ? slot.count : ''}</span>`;
+                }
+            }
+
+            // Main inventory
+            for (let i = 0; i < 27; i++) {
+                const slot = this.inventory.main[i];
+                const el = document.getElementById(`main-${i}`);
+                if (el) {
+                    if (slot.item === 0) el.innerHTML = '';
+                    else el.innerHTML = `${UIManager.renderItemIcon(slot.item)} <span class="item-count">${slot.count > 1 ? slot.count : ''}</span>`;
+                }
+            }
+
+            // Crafting Grid
+            for (let i = 0; i < 4; i++) {
+                const slot = this.inventory.craftingGrid[i];
+                const el = document.getElementById(`crafting-${i}`);
+                if (el) {
+                    if (slot.item === 0) el.innerHTML = '';
+                    else el.innerHTML = `${UIManager.renderItemIcon(slot.item)} <span class="item-count">${slot.count > 1 ? slot.count : ''}</span>`;
+                }
+            }
+
+            // Crafting Result
+            const grid2D = [
+                [this.inventory.craftingGrid[0], this.inventory.craftingGrid[1]],
+                [this.inventory.craftingGrid[2], this.inventory.craftingGrid[3]]
+            ];
+            const recipe = this.crafting.checkRecipe(grid2D);
+            const resultEl = document.getElementById('crafting-result');
+            if (resultEl) {
+                if (recipe) resultEl.innerHTML = `${UIManager.renderItemIcon(recipe.result.item)} <span class="item-count">${recipe.result.count > 1 ? recipe.result.count : ''}</span>`;
+                else resultEl.innerHTML = '';
+            }
+
+            this.ui.updateHotbarSelection(this.inventory.selectedHotbarSlot);
         }
-    }
-
-}
-
-    public render() {
-    // Hotbar
-    for (let i = 0; i < 9; i++) {
-        const slot = this.inventory.hotbar[i];
-        const el = document.getElementById(`hotbar-${i}`);
-        if (el) {
-            if (slot.item === 0) el.innerHTML = '';
-            else el.innerHTML = `${UIManager.renderItemIcon(slot.item)} <span class="item-count">${slot.count > 1 ? slot.count : ''}</span>`;
-        }
-    }
-
-    // Main inventory
-    for (let i = 0; i < 27; i++) {
-        const slot = this.inventory.main[i];
-        const el = document.getElementById(`main-${i}`);
-        if (el) {
-            if (slot.item === 0) el.innerHTML = '';
-            else el.innerHTML = `${UIManager.renderItemIcon(slot.item)} <span class="item-count">${slot.count > 1 ? slot.count : ''}</span>`;
-        }
-    }
-
-    // Crafting Grid
-    for (let i = 0; i < 4; i++) {
-        const slot = this.inventory.craftingGrid[i];
-        const el = document.getElementById(`crafting-${i}`);
-        if (el) {
-            if (slot.item === 0) el.innerHTML = '';
-            else el.innerHTML = `${UIManager.renderItemIcon(slot.item)} <span class="item-count">${slot.count > 1 ? slot.count : ''}</span>`;
-        }
-    }
-
-    // Crafting Result
-    const grid2D = [
-        [this.inventory.craftingGrid[0], this.inventory.craftingGrid[1]],
-        [this.inventory.craftingGrid[2], this.inventory.craftingGrid[3]]
-    ];
-    const recipe = this.crafting.checkRecipe(grid2D);
-    const resultEl = document.getElementById('crafting-result');
-    if (resultEl) {
-        if (recipe) resultEl.innerHTML = `${UIManager.renderItemIcon(recipe.result.item)} <span class="item-count">${recipe.result.count > 1 ? recipe.result.count : ''}</span>`;
-        else resultEl.innerHTML = '';
-    }
-
-    this.ui.updateHotbarSelection(this.inventory.selectedHotbarSlot);
-}
 }
