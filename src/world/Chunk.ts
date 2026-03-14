@@ -25,16 +25,17 @@ export class Chunk {
     public dz: number;
     public isDirty: boolean = false;
 
-    constructor(dx: number, dz: number) {
+    constructor(dx: number, dz: number, scene: THREE.Scene) {
         this.dx = dx;
         this.dz = dz;
         this.data = new Uint8Array(CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_WIDTH);
         this.mesh = new THREE.Mesh(new THREE.BufferGeometry());
         this.mesh.position.set(dx * CHUNK_WIDTH, 0, dz * CHUNK_WIDTH);
-        this.mesh.castShadow = true;
+        this.mesh.castShadow = false;
         this.mesh.receiveShadow = true;
         this.mesh.matrixAutoUpdate = false;
         this.mesh.updateMatrix();
+        scene.add(this.mesh);
     }
 
     public getBlock(x: number, y: number, z: number): BlockType {

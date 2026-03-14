@@ -104,15 +104,17 @@ export class Player {
     }
 
     public update(delta: number) {
-        // SPAWN PROTECTION: Don't fall if no block below yet
-        const blockBelow = this.world.getBlock(
-            Math.floor(this.camera.position.x),
-            Math.floor(this.camera.position.y - 10), // Look ahead
-            Math.floor(this.camera.position.z)
-        );
+        // SPAWN PROTECTION: Don't fall if no ground found yet in the loaded chunk
+        let groundFound = false;
+        for (let checkY = 40; checkY < 70; checkY++) {
+            if (this.world.getBlock(Math.floor(this.camera.position.x), checkY, Math.floor(this.camera.position.z)) !== BlockType.AIR) {
+                groundFound = true;
+                break;
+            }
+        }
 
-        if (this.camera.position.y > 70 && blockBelow === BlockType.AIR) {
-            this.velocity.y = 0; // Hover while waiting for chunk
+        if (this.camera.position.y > 70 && !groundFound) {
+            this.velocity.y = 0; // Hover until ground appears
         } else {
             this.velocity.y -= this.gravity * delta;
         }
