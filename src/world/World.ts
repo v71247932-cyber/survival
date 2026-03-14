@@ -4,7 +4,7 @@ import { WorldGenerator } from './WorldGenerator';
 import { createBlockMaterials } from '../utils/TextureGenerator';
 import { BlockType } from './BlockInfo';
 
-const RENDER_DISTANCE = 4;
+const RENDER_DISTANCE = 3;
 
 export class World {
     public chunks: Map<string, Chunk> = new Map();

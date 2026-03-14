@@ -50,11 +50,9 @@ export class NetworkManager {
             this.ws.close();
         }
 
-        let protocol = 'ws://';
+        let protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
         if (ip.startsWith('ws://') || ip.startsWith('wss://')) {
             protocol = '';
-        } else if (!ip.includes('localhost') && !ip.includes('127.0.0.1')) {
-            protocol = 'wss://';
         }
 
         let url = `${protocol}${ip}`;

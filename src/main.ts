@@ -273,19 +273,19 @@ function animate() {
 
     // Throttled light updates (only if moved > 2 units to save battery/perf)
     const pPos = camera.position;
-    if (!this._lastLightPos) this._lastLightPos = new THREE.Vector3().copy(pPos);
-    if (this._lastLightPos.distanceToSquared(pPos) > 4.0) {
+    if (!(animate as any)._lastLightPos) (animate as any)._lastLightPos = new THREE.Vector3().copy(pPos);
+    if ((animate as any)._lastLightPos.distanceToSquared(pPos) > 4.0) {
         dirLight.position.set(pPos.x + 50, pPos.y + 100, pPos.z + 50);
         dirLight.target.position.set(pPos.x, pPos.y, pPos.z);
         dirLight.target.updateMatrixWorld();
-        this._lastLightPos.copy(pPos);
+        (animate as any)._lastLightPos.copy(pPos);
     }
 
     renderer.render(scene, camera);
 }
 // Initialize helper for light throttling
 (animate as any)._lastLightPos = null;
-animate.call(animate);
+animate();
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;

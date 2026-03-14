@@ -171,6 +171,6 @@ function broadcast(realm: string, data: any, excludeWs?: WebSocket) {
 //     broadcast({ type: 'world_state', players: positions });
 // }, 50);
 
-server.listen(port, () => {
+server.listen(Number(port), '0.0.0.0', () => {
     console.log(`[Server] WebSocket server listening on port ${port}`);
 });
