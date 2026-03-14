@@ -64,7 +64,7 @@ export class NetworkManager {
 
         // Wake up Render server (cold start)
         const httpUrl = url.replace('ws://', 'http://').replace('wss://', 'https://').split('?')[0];
-        fetch(httpUrl).catch(() => { });
+        fetch(httpUrl, { mode: 'no-cors' }).catch(() => { });
 
         try {
             this.ws = new WebSocket(url);
