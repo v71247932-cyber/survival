@@ -71,4 +71,30 @@ export class SaveManager {
             localStorage.setItem('survival_save_list', JSON.stringify(list));
         }
     }
+
+    public static saveTransitState(data: any) {
+        localStorage.setItem('survival_transit_state', JSON.stringify({
+            ...data,
+            timestamp: Date.now()
+        }));
+    }
+
+    public static loadTransitState(): any | null {
+        const data = localStorage.getItem('survival_transit_state');
+        if (!data) return null;
+        try {
+            const parsed = JSON.parse(data);
+            if (Date.now() - parsed.timestamp > 300000) { // 5 min expiry
+                this.clearTransitState();
+                return null;
+            }
+            return parsed;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    public static clearTransitState() {
+        localStorage.removeItem('survival_transit_state');
+    }
 }

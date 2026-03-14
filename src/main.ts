@@ -204,6 +204,23 @@ window.addEventListener('request_save_and_leave', () => {
     window.location.href = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') || '/';
 });
 
+window.addEventListener('transit_to_realm', (e: any) => {
+    const targetRealm = e.detail.realm;
+    const playerState = player.getState();
+
+    // Save only necessary parts for transit (mostly inventory)
+    SaveManager.saveTransitState({
+        inventory: playerState.inventory,
+        health: playerState.health,
+        hunger: playerState.hunger
+    });
+
+    // Redirect
+    const baseUrl = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') || '/';
+    const joinUrl = baseUrl.endsWith('/') ? baseUrl + targetRealm : baseUrl + '/' + targetRealm;
+    window.location.href = joinUrl;
+});
+
 // Entities
 const entityManager = new EntityManager(scene, world, player);
 
@@ -245,6 +262,22 @@ if (urlRealm) {
         console.log(`[Save] Loading saved data for realm: ${urlRealm}`);
         world.loadSaveData(savedData.modifiedBlocks);
         player.loadState(savedData.player);
+    }
+
+    // Check for transit data (inventory from previous realm)
+    const transitData = SaveManager.loadTransitState();
+    if (transitData) {
+        console.log(`[Transit] Carrying over inventory to new realm.`);
+        // Only override if we don't have a specific save for this realm yet
+        // or just merge the inventory. For simplicity, we override inventory.
+        player.inventory.hotbar = transitData.inventory.hotbar;
+        player.inventory.main = transitData.inventory.main;
+        (player as any).survival.health = transitData.health;
+        (player as any).survival.hunger = transitData.hunger;
+        window.dispatchEvent(new CustomEvent('inventory_updated'));
+
+        // Clear transit after use
+        SaveManager.clearTransitState();
     }
 
     networkManager.connect(serverIp, username, urlRealm);

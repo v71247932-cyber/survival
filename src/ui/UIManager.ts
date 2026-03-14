@@ -82,6 +82,13 @@ export class UIManager {
                         <button id="btn-resume" style="padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; background: #fff; color: #000; border: none; cursor: pointer;">Back to Game</button>
                         <button id="btn-save-leave" style="padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; background: rgba(255,50,50,0.2); color: #ff5555; border: 1px solid rgba(255,85,85,0.3); cursor: pointer;">Save and Leave</button>
                     </div>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 10px;">
+                        <span style="color: rgba(255,255,255,0.4); font-size: 12px; text-transform: uppercase; font-weight: 700;">Transfer to Realm</span>
+                        <input id="esc-realm-name" type="text" placeholder="New Realm Name" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" />
+                        <button id="btn-create-teleport" style="padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 700; background: #55ff55; color: #000; border: none; cursor: pointer;">Create & Teleport</button>
+                        <p style="color: rgba(255,255,255,0.3); font-size: 10px; margin: 0;">Inventory will be carried over</p>
+                    </div>
                 </div>
             </div>
 
@@ -180,6 +187,8 @@ export class UIManager {
         // Escape Menu
         const btnResume = document.getElementById('btn-resume');
         const btnSaveLeave = document.getElementById('btn-save-leave');
+        const btnCreateTeleport = document.getElementById('btn-create-teleport');
+        const inputEscRealm = document.getElementById('esc-realm-name') as HTMLInputElement;
 
         if (btnResume) {
             btnResume.addEventListener('click', () => {
@@ -192,6 +201,17 @@ export class UIManager {
             btnSaveLeave.addEventListener('click', () => {
                 // Dispatch event to main.ts to handle saving
                 window.dispatchEvent(new CustomEvent('request_save_and_leave'));
+            });
+        }
+
+        if (btnCreateTeleport && inputEscRealm) {
+            btnCreateTeleport.addEventListener('click', () => {
+                const realm = inputEscRealm.value.trim();
+                if (realm) {
+                    window.dispatchEvent(new CustomEvent('transit_to_realm', { detail: { realm } }));
+                } else {
+                    alert('Please enter a realm name.');
+                }
             });
         }
 
