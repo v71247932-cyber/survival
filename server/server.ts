@@ -3,20 +3,27 @@ import http from 'http';
 
 const port = process.env.PORT || 8080;
 const server = http.createServer((req, res) => {
-    // Set CORS headers for all requests
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-requested-with');
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-requested-with',
+        'Content-Type': 'text/plain'
+    };
 
-    // Handle Preflight OPTIONS
     if (req.method === 'OPTIONS') {
-        res.statusCode = 204;
+        res.writeHead(204, headers);
         res.end();
         return;
     }
 
-    res.statusCode = 200;
-    res.end('Server is running');
+    if (req.url === '/health') {
+        res.writeHead(200, headers);
+        res.end('OK');
+        return;
+    }
+
+    res.writeHead(200, headers);
+    res.end('Voxel Server is running');
 });
 const wss = new WebSocketServer({ server });
 

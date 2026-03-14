@@ -32,20 +32,31 @@ export class World {
     }
 
     private loadQueue: { x: number, z: number }[] = [];
+    private loadQueueKeys: Set<string> = new Set();
     private lastPlayerChunkX: number | null = null;
     private lastPlayerChunkZ: number | null = null;
 
     public update(playerPos: THREE.Vector3) {
-        const pChunkX = Math.floor(playerPos.x / CHUNK_WIDTH);
-        const pChunkZ = Math.floor(playerPos.z / CHUNK_WIDTH);
-
-        // Process only 1 chunk per frame to maintain high FPS
+        // 1. Process 1 job from queue every frame (build or mesh)
         if (this.loadQueue.length > 0) {
             const next = this.loadQueue.shift()!;
+            this.loadQueueKeys.delete(`${next.x},${next.z}`);
             this.loadChunk(next.x, next.z);
         }
 
-        // Only recalculate visible chunks if the player moved to a new chunk
+        // 2. Rebuild dirty chunks in radius even if player didn't move
+        // This ensures block changes are reflected immediately
+        for (const chunk of this.chunks.values()) {
+            if (chunk.isDirty) {
+                chunk.buildMesh(this.materials);
+                break; // Only 1 rebuild per frame to save FPS
+            }
+        }
+
+        const pChunkX = Math.floor(playerPos.x / CHUNK_WIDTH);
+        const pChunkZ = Math.floor(playerPos.z / CHUNK_WIDTH);
+
+        // 3. Only recalculate visibility if moved to new chunk
         if (this.lastPlayerChunkX === pChunkX && this.lastPlayerChunkZ === pChunkZ) {
             return;
         }
@@ -63,16 +74,11 @@ export class World {
                 const key = `${cx},${cz}`;
                 chunksInRadius.add(key);
 
-                if (!this.chunks.has(key) && !this.loadQueue.some(q => q.x === cx && q.z === cz)) {
+                if (!this.chunks.has(key) && !this.loadQueueKeys.has(key)) {
                     this.loadQueue.push({ x: cx, z: cz });
+                    this.loadQueueKeys.add(key);
                 }
             }
-        }
-
-        // Process only 1 chunk per frame to maintain high FPS
-        if (this.loadQueue.length > 0) {
-            const next = this.loadQueue.shift()!;
-            this.loadChunk(next.x, next.z);
         }
 
         for (const [key, chunk] of this.chunks.entries()) {
@@ -80,9 +86,6 @@ export class World {
                 this.scene.remove(chunk.mesh);
                 if (chunk.mesh.geometry) chunk.mesh.geometry.dispose();
                 this.chunks.delete(key);
-            } else if (chunk.isDirty) {
-                // Optimize: Rebuild mesh if dirty
-                chunk.buildMesh(this.materials);
             }
         }
     }

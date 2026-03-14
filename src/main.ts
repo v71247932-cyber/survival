@@ -23,7 +23,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Capped at 1.5 for better perf on high-DPI
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = false;
 renderer.shadowMap.type = THREE.BasicShadowMap; // Much faster than PCFSoft
 document.getElementById('app')!.appendChild(renderer.domElement);
 
@@ -33,7 +33,7 @@ scene.add(ambientLight);
 
 const dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
 dirLight.position.set(100, 200, 50);
-dirLight.castShadow = true;
+dirLight.castShadow = false;
 dirLight.shadow.camera.left = -40; // Tighten shadow camera for better resolution at lower map size
 dirLight.shadow.camera.right = 40;
 dirLight.shadow.camera.top = 40;
