@@ -346,6 +346,17 @@ export class Player {
 
             const b = this.world.getBlock(bx, by, bz);
             if (b !== BlockType.AIR && b !== BlockType.WATER) {
+                // Special interaction: Crafting Table
+                if (b === BlockType.CRAFTING_TABLE) {
+                    if ((window as any).inventoryCtrl) {
+                        const invCtrl = (window as any).inventoryCtrl;
+                        invCtrl.isTableOpen = true;
+                        invCtrl.render();
+                        window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE' }));
+                    }
+                    return;
+                }
+
                 if (lastAirPos) {
                     const selected = this.inventory.getSelectedSlot();
                     const blockToPlace = getBlockTypeFromItem(selected.item);

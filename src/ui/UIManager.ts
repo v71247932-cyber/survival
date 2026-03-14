@@ -23,8 +23,8 @@ export class UIManager {
             
             <div id="inventory-screen" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, rgba(20,30,48,0.95), rgba(36,59,85,0.95)); border: 2px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); backdrop-filter: blur(20px); flex-direction: column; gap: 20px; font-family: 'Inter', sans-serif; color: white; z-index: 1001; pointer-events: auto;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase;">Crafting Station</h2>
-                    <div style="font-size: 12px; color: rgba(255,255,255,0.4);">RESOURCES READY</div>
+                    <h2 id="crafting-title" style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase;">Inventory (2x2)</h2>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.4);">CRAFTING</div>
                 </div>
                 <div style="display: flex; gap: 30px; align-items: center; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
                     <div id="crafting-grid" style="display: grid; grid-template-columns: repeat(2, 46px); grid-template-rows: repeat(2, 46px); gap: 6px;">
@@ -136,50 +136,118 @@ export class UIManager {
         return inv?.style.display === 'flex';
     }
 
-    // Updated with high-quality CSS "textures"
+    // Procedural Pixel Art Rendering
     public static renderItemIcon(id: number): string {
         if (id === 0) return '';
 
-        // Premium color palettes for "detailed" look
-        const palettes: Record<number, { c1: string, c2: string }> = {
-            1: { c1: '#55ff55', c2: '#22aa22' }, // Grass (Vibrant)
-            2: { c1: '#885533', c2: '#442211' }, // Dirt (Rich)
-            3: { c1: '#aaaaaa', c2: '#555555' }, // Stone (Granite)
-            4: { c1: '#bb8866', c2: '#774422' }, // Wood (Oak)
-            5: { c1: '#228822', c2: '#114411' }, // Leaves (Deep)
-            6: { c1: '#eeeebb', c2: '#ccaa88' }, // Sand (Smooth)
-            9: { c1: '#999999', c2: '#666666' }, // Cobblestone
-            10: { c1: '#eebb88', c2: '#cc9966' }, // Wood Planks
-            11: { c1: '#777777', c2: '#444444' }, // Gravel
-            12: { c1: '#cc5544', c2: '#882211' }, // Bricks
-            13: { c1: '#ebd6a7', c2: '#d4b37d' }, // Sandstone
-            14: { c1: '#ffee77', c2: '#ffcc00' }, // Gold
-            15: { c1: '#333333', c2: '#111111' }, // Bedrock
+        const canvas = document.createElement('canvas');
+        canvas.width = 16;
+        canvas.height = 16;
+        const ctx = canvas.getContext('2d')!;
+
+        // Default color patterns
+        const drawPixel = (x: number, y: number, color: string) => {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, 1, 1);
         };
 
-        if (id === 50) return `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-15deg);">🥢</div>`; // Stick
-        if (id === 51) return `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-10deg);">🥈</div>`; // Iron Ingot
-        if (id === 52) return `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-10deg);">🥇</div>`; // Gold Ingot
+        const drawNoise = (color: string, intensity: number = 20) => {
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, 16, 16);
+            const alpha = intensity / 255;
+            for (let i = 0; i < 64; i++) {
+                const x = Math.floor(Math.random() * 16);
+                const y = Math.floor(Math.random() * 16);
+                const dark = Math.random() > 0.5;
+                ctx.fillStyle = dark ? `rgba(0,0,0,${alpha})` : `rgba(255,255,255,${alpha})`;
+                ctx.fillRect(x, y, 1, 1);
+            }
+        };
 
-        if (id >= 100 && id < 140) {
-            let icon = '⛏️'; // Pickaxe
-            if (id >= 110 && id < 120) icon = '🪓'; // Axe
-            if (id >= 120 && id < 130) icon = '🧹'; // Shovel (nearest emoji)
-            if (id >= 130 && id < 140) icon = '⚔️'; // Sword
-
-            const materialId = id % 10;
-            const colors: Record<number, string> = {
-                0: '#8f683f', // Wood
-                1: '#aaa',    // Stone
-                2: '#eee',    // Iron
-                3: '#ffd700', // Gold
-            };
-            const toolColor = colors[materialId] || '#fff';
-
-            return `<div style="font-size: 28px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 2px ${toolColor});">${icon}</div>`;
+        // Render based on ID
+        switch (id) {
+            case 1: drawNoise('#4C8A36'); break; // Grass
+            case 2: drawNoise('#63452C'); break; // Dirt
+            case 3: drawNoise('#7D7D7D'); break; // Stone
+            case 4: drawNoise('#8f683f'); break; // Wood
+            case 6: drawNoise('#DCCC8B'); break; // Sand
+            case 9: drawNoise('#5b5b5b'); break; // Cobblestone
+            case 10: drawNoise('#a07c4e'); break; // Planks
+            case 14: drawNoise('#FFD700'); break; // Gold
+            case 16: drawNoise('#E8E8E8'); break; // Iron
+            case 17: // Crafting Table
+                drawNoise('#8a6642');
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(2, 2, 12, 1);
+                ctx.fillRect(2, 2, 1, 12);
+                break;
+            case 18: // Bed
+                ctx.fillStyle = '#cc3333'; ctx.fillRect(2, 4, 12, 6);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(2, 2, 12, 2);
+                break;
+            case 19: drawNoise('#ffffff', 5); break; // Wool
+            case 50: // Stick
+                ctx.fillStyle = '#8f683f';
+                for (let i = 0; i < 10; i++) drawPixel(3 + i, 12 - i, '#8f683f');
+                break;
+            case 51: // Iron Ingot
+                ctx.fillStyle = '#E8E8E8';
+                ctx.fillRect(4, 4, 8, 8);
+                ctx.fillStyle = '#bbb'; drawPixel(4, 4, '#bbb'); drawPixel(11, 11, '#bbb');
+                break;
+            case 52: // Gold Ingot
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(4, 4, 8, 8);
+                break;
         }
 
-        const p = palettes[id] || { c1: '#ff00ff', c2: '#880088' };
-        return `<div class="item-icon item-detail" style="--c1: ${p.c1}; --c2: ${p.c2};"></div>`;
+        // Tools rendering logic (simplified pixel shapes)
+        if (id >= 100 && id < 140) {
+            const matId = id % 10;
+            const colors = ['#8f683f', '#aaa', '#eee', '#ffd700'];
+            const headColor = colors[matId];
+
+            // Stick
+            ctx.fillStyle = '#6d4c2a';
+            for (let i = 0; i < 12; i++) drawPixel(2 + i, 13 - i, '#6d4c2a');
+
+            if (id >= 100 && id < 110) { // Pickaxe
+                ctx.fillStyle = headColor;
+                ctx.fillRect(3, 2, 10, 2);
+                ctx.fillRect(2, 3, 2, 3);
+                ctx.fillRect(12, 3, 2, 3);
+            } else if (id >= 110 && id < 120) { // Axe
+                ctx.fillStyle = headColor;
+                ctx.fillRect(8, 2, 4, 5);
+                ctx.fillRect(7, 3, 1, 3);
+            } else if (id >= 120 && id < 130) { // Shovel
+                ctx.fillStyle = headColor;
+                ctx.fillRect(11, 2, 3, 3);
+            } else if (id >= 130 && id < 140) { // Sword
+                ctx.fillStyle = headColor;
+                for (let i = 0; i < 10; i++) drawPixel(5 + i, 10 - i, headColor);
+                drawPixel(4, 11, headColor); drawPixel(5, 12, headColor); // Guard
+            }
+        }
+
+        return `<div class="item-icon" style="background-image: url(${canvas.toDataURL()}); background-size: contain; background-repeat: no-repeat; image-rendering: pixelated;"></div>`;
+    }
+
+    public setCraftingMode(isTable: boolean) {
+        const grid = document.getElementById('crafting-grid');
+        const title = document.getElementById('crafting-title');
+        if (!grid || !title) return;
+
+        title.innerText = isTable ? "Workbench (3x3)" : "Inventory (2x2)";
+
+        if (isTable) {
+            grid.style.gridTemplateColumns = 'repeat(3, 46px)';
+            grid.style.gridTemplateRows = 'repeat(3, 46px)';
+            grid.innerHTML = Array(9).fill(0).map((_, i) => `<div class="slot part-of-crafting" id="crafting-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px;"></div>`).join('');
+        } else {
+            grid.style.gridTemplateColumns = 'repeat(2, 46px)';
+            grid.style.gridTemplateRows = 'repeat(2, 46px)';
+            grid.innerHTML = Array(4).fill(0).map((_, i) => `<div class="slot part-of-crafting" id="crafting-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px;"></div>`).join('');
+        }
     }
 }

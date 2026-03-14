@@ -11,6 +11,8 @@ export class InventoryController {
     private heldItem: { item: number, count: number, durability?: number } | null = null;
     private floatingEl: HTMLElement | null = null;
 
+    public isTableOpen = false;
+
     constructor(inventory: InventoryManager, ui: UIManager) {
         this.inventory = inventory;
         this.ui = ui;
@@ -136,15 +138,20 @@ export class InventoryController {
                     // Logic to take crafting result (always takes all)
                     if (isRightClick) return; // Right click on result does nothing special yet
 
-                    const grid2D = [
-                        [this.inventory.craftingGrid[0], this.inventory.craftingGrid[1]],
-                        [this.inventory.craftingGrid[2], this.inventory.craftingGrid[3]]
-                    ];
-                    const recipe = this.crafting.checkRecipe(grid2D);
+                    const size = this.isTableOpen ? 3 : 2;
+                    const grid2D: any[][] = [];
+                    for (let r = 0; r < size; r++) {
+                        grid2D[r] = [];
+                        for (let c = 0; c < size; c++) {
+                            grid2D[r][c] = this.inventory.craftingGrid[r * size + c];
+                        }
+                    }
+
+                    const recipe = this.crafting.checkRecipe(grid2D, this.isTableOpen);
                     if (recipe) {
                         this.heldItem = { item: recipe.result.item, count: recipe.result.count };
                         // Consume ingredients
-                        for (let j = 0; j < 4; j++) {
+                        for (let j = 0; j < (size * size); j++) {
                             const slot = this.inventory.craftingGrid[j];
                             if (slot.item !== 0) {
                                 this.inventory.craftingGrid[j] = { item: slot.item, count: slot.count - 1 };
@@ -218,7 +225,11 @@ export class InventoryController {
         }
 
         // Crafting Grid
-        for (let i = 0; i < 4; i++) {
+        this.ui.setCraftingMode(this.isTableOpen); // Ensure UI matches current mode
+        const size = this.isTableOpen ? 3 : 2;
+        const totalSlots = size * size;
+
+        for (let i = 0; i < totalSlots; i++) {
             const slot = this.inventory.craftingGrid[i];
             const el = document.getElementById(`crafting-${i}`);
             if (el) {
@@ -228,11 +239,15 @@ export class InventoryController {
         }
 
         // Crafting Result
-        const grid2D = [
-            [this.inventory.craftingGrid[0], this.inventory.craftingGrid[1]],
-            [this.inventory.craftingGrid[2], this.inventory.craftingGrid[3]]
-        ];
-        const recipe = this.crafting.checkRecipe(grid2D);
+        const grid2D: any[][] = [];
+        for (let r = 0; r < size; r++) {
+            grid2D[r] = [];
+            for (let c = 0; c < size; c++) {
+                grid2D[r][c] = this.inventory.craftingGrid[r * size + c];
+            }
+        }
+
+        const recipe = this.crafting.checkRecipe(grid2D, this.isTableOpen);
         const resultEl = document.getElementById('crafting-result');
         if (resultEl) {
             if (recipe) resultEl.innerHTML = `${UIManager.renderItemIcon(recipe.result.item)} <span class="item-count">${recipe.result.count > 1 ? recipe.result.count : ''}</span>`;

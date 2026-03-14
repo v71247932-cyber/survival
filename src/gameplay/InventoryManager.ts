@@ -3,12 +3,14 @@ import { ItemID, InventorySlot } from './Items';
 export class InventoryManager {
     public hotbar: InventorySlot[] = Array(9).fill({ item: ItemID.NONE, count: 0 });
     public main: InventorySlot[] = Array(27).fill({ item: ItemID.NONE, count: 0 });
-    public craftingGrid: InventorySlot[] = Array(4).fill({ item: ItemID.NONE, count: 0 });
+    public craftingGrid: InventorySlot[] = Array(9).fill({ item: ItemID.NONE, count: 0 });
     public selectedHotbarSlot = 0;
 
     constructor() {
         // Give some starting items for testing
         this.addItem(ItemID.DIRT_BLOCK, 10);
+        this.addItem(ItemID.WOOD_BLOCK, 16);
+        this.addItem(ItemID.WOOL, 3);
     }
 
     private notifyUI() {

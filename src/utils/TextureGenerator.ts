@@ -81,7 +81,11 @@ export function createBlockMaterials(): THREE.Material[] {
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#D9C985', 10) }), // 15: Sandstone
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#FFD700', 30) }), // 16: Gold Block
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#202020', 40) }), // 17: Bedrock
-        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#E8E8E8', 10) })  // 18: Iron Block
+        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#E8E8E8', 10) }), // 18: Iron Block
+        new THREE.MeshLambertMaterial({ map: generateTexture('wood-top', '#8f683f', 15) }), // 19: CT Top (reuse rings but darker)
+        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#8a6642', 20) }),  // 20: CT Side
+        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#cc3333', 15) }),  // 21: Bed (Red)
+        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#ffffff', 5) })   // 22: Wool
     ];
 }
 

@@ -74,16 +74,17 @@ document.addEventListener('keydown', (e) => {
             document.getElementById('chat-input-container')!.style.display = 'none';
             player.controls.lock();
             document.body.focus();
+            return;
         }
         return;
     }
 
     if (e.code === 'KeyE') {
-        const isOpen = ui.toggleInventory();
-        if (isOpen) {
+        if (ui.toggleInventory()) {
             player.controls.unlock();
         } else {
             player.controls.lock();
+            if ((window as any).inventoryCtrl) (window as any).inventoryCtrl.isTableOpen = false;
         }
     }
 

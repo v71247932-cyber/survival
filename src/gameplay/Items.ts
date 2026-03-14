@@ -44,6 +44,11 @@ export enum ItemID {
     STONE_SWORD = 131,
     IRON_SWORD = 132,
     GOLD_SWORD = 133,
+
+    // Blocks/Items
+    CRAFTING_TABLE = 17,
+    BED = 18,
+    WOOL = 19,
 }
 
 export interface InventorySlot {
