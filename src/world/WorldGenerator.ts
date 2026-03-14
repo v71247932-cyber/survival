@@ -4,31 +4,16 @@ import { BlockType } from './BlockInfo';
 import { StructureGenerator } from './StructureGenerator';
 
 export class WorldGenerator {
-    private noise2D: (x: number, y: number) => number;
-    private noise3D: (x: number, y: number, z: number) => number;
+    private noise2D = createNoise2D();
+    private noise3D = createNoise3D();
     private seedOffset: number;
-    private prng: () => number;
 
     constructor(seed?: number | string) {
         if (typeof seed === 'string') {
             this.seedOffset = this.hashString(seed);
         } else {
-            this.seedOffset = seed || Math.floor(Math.random() * 10000);
+            this.seedOffset = seed || Math.random() * 10000;
         }
-
-        // Use a seeded PRNG for deterministic noise and random numbers
-        this.prng = this.createPRNG(this.seedOffset);
-        this.noise2D = createNoise2D(this.prng);
-        this.noise3D = createNoise3D(this.prng);
-    }
-
-    private createPRNG(seed: number) {
-        let t = (seed % 2147483647) + 0x6D2B79F5;
-        return () => {
-            t = Math.imul(t ^ (t >>> 15), t | 1);
-            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
     }
 
     private hashString(str: string): number {
@@ -38,7 +23,13 @@ export class WorldGenerator {
             hash = ((hash << 5) - hash) + char;
             hash = hash & hash; // Convert to 32bit integer
         }
-        return Math.abs(hash);
+        return Math.abs(hash) % 10000;
+    }
+
+    private seededRandom(x: number, y: number, z: number, offset: number = 0): number {
+        const seed = this.seedOffset + offset;
+        const val = Math.sin(x * 12.9898 + y * 78.233 + z * 37.719 + seed) * 43758.5453123;
+        return val - Math.floor(val);
     }
 
     public generateChunk(chunk: Chunk) {
@@ -52,11 +43,13 @@ export class WorldGenerator {
                 const worldX = dx + x;
                 const worldZ = dz + z;
 
-                // Base terrain height - simplified to 1 octave for 60+ FPS on live site
-                const e = this.noise(worldX, worldZ, 0.012);
+                // Base terrain height and biomes
+                const e = 1 * this.noise(1 * worldX, 1 * worldZ, 0.005)
+                    + 0.5 * this.noise(2 * worldX, 2 * worldZ, 0.01)
+                    + 0.25 * this.noise(4 * worldX, 4 * worldZ, 0.02);
 
                 // Map e from roughly -1..1 to height
-                const height = Math.floor(48 + e * 12);
+                const height = Math.floor(40 + (e + 1) * 20);
                 heightmap[x][z] = height;
 
                 // Humidity/temperature for biomes
@@ -88,14 +81,33 @@ export class WorldGenerator {
                             else chunk.setBlock(x, y, z, BlockType.DIRT);
                         }
                     } else {
-                        // Very simplified stone/caves (no 3D noise for now to save 60k calls/frame)
-                        chunk.setBlock(x, y, z, BlockType.STONE);
+                        // Caves using 3D noise
+                        const caveNoise = this.noise3D(worldX * 0.05, y * 0.05, worldZ * 0.05);
+                        const largeCaveNoise = this.noise3D(worldX * 0.015, y * 0.02, worldZ * 0.015);
+
+                        if (caveNoise > 0.4 || largeCaveNoise > 0.45) {
+                            chunk.setBlock(x, y, z, BlockType.AIR);
+                        } else {
+                            // Ores - DETERMINISTIC
+                            const oreNoise = this.noise3D(worldX * 0.1, y * 0.1, worldZ * 0.1);
+                            if (oreNoise > 0.7) {
+                                const rand = this.seededRandom(worldX, y, worldZ, 999);
+                                if (y < 20 && rand < 0.3) chunk.setBlock(x, y, z, BlockType.GOLD_BLOCK);
+                                else if (y < 40) chunk.setBlock(x, y, z, BlockType.IRON_BLOCK);
+                                else chunk.setBlock(x, y, z, BlockType.STONE);
+                            } else {
+                                chunk.setBlock(x, y, z, BlockType.STONE);
+                            }
+                        }
                     }
                 }
 
-                // Trees
-                if (height > 44 && moisture >= -0.2 && this.prng() < 0.01) {
-                    this.generateTree(chunk, x, height + 1, z);
+                // Trees - DETERMINISTIC
+                if (height > 44 && moisture >= -0.2) {
+                    const treeRand = this.seededRandom(worldX, height, worldZ, 555);
+                    if (treeRand < 0.01) {
+                        this.generateTree(chunk, x, height + 1, z, worldX, worldZ);
+                    }
                 }
             }
         }
@@ -105,8 +117,11 @@ export class WorldGenerator {
         structGen.generateStructures(chunk, heightmap);
     }
 
-    private generateTree(chunk: Chunk, x: number, y: number, z: number) {
-        const height = 4 + Math.floor(this.prng() * 3);
+    private generateTree(chunk: Chunk, x: number, y: number, z: number, worldX: number, worldZ: number) {
+        // Use seeded random for tree height
+        const heightRand = this.seededRandom(worldX, y, worldZ, 111);
+        const height = 4 + Math.floor(heightRand * 3);
+
         // Trunk
         for (let i = 0; i < height; i++) {
             chunk.setBlock(x, y + i, z, BlockType.WOOD);
@@ -125,7 +140,8 @@ export class WorldGenerator {
                         if (dist > 2) continue;
                     } else if (ly >= height - 1) {
                         // Middle part (full width)
-                        if (absX === 2 && absZ === 2 && this.prng() < 0.3) continue;
+                        const leafRand = this.seededRandom(worldX + lx, y + ly, worldZ + lz, 222);
+                        if (absX === 2 && absZ === 2 && leafRand < 0.3) continue;
                     } else {
                         // Bottom part (wider but with corner cuts)
                         if (dist > 3) continue;

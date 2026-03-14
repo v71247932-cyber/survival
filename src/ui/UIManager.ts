@@ -151,15 +151,16 @@ export class UIManager {
             });
 
             btnCreate.addEventListener('click', () => {
-                const realm = inputRealm.value.trim();
-                if (realm) {
-                    // Redirect to the realm URL
-                    const baseUrl = window.location.origin + window.location.pathname;
-                    const joinUrl = baseUrl.endsWith('/') ? baseUrl + realm : baseUrl + '/' + realm;
-                    window.location.href = joinUrl;
-                } else {
-                    alert('Please enter a realm name.');
+                let realm = inputRealm.value.trim();
+                if (!realm) {
+                    // Generate a random unique realm name
+                    realm = 'realm-' + Math.random().toString(36).substring(2, 7);
                 }
+
+                // Redirect to the realm URL
+                const baseUrl = window.location.origin + window.location.pathname;
+                const joinUrl = baseUrl.endsWith('/') ? baseUrl + realm : baseUrl + '/' + realm;
+                window.location.href = joinUrl;
             });
 
             btnMulti.addEventListener('click', () => {

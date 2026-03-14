@@ -65,13 +65,15 @@ export class StructureGenerator {
                 for (let iy = 0; iy < 3; iy++) {
                     // Walls
                     if (Math.abs(ix) === 2 || Math.abs(iz) === 2) {
-                        if (this.random(x + ix, z + iz, iy + 100) < 0.7) { // 30% missing
+                        const wallRand = this.random(x + ix, z + iz, iy + 100);
+                        if (wallRand < 0.7) { // 30% missing
                             chunk.setBlock(x + ix, y + iy, z + iz, BlockType.COBBLESTONE);
                         }
                     }
                 }
                 // Floor
-                if (this.random(x + ix, z + iz, 200) < 0.9) {
+                const floorRand = this.random(x + ix, z + iz, 200);
+                if (floorRand < 0.9) {
                     chunk.setBlock(x + ix, y - 1, z + iz, BlockType.COBBLESTONE);
                 }
             }
@@ -96,7 +98,8 @@ export class StructureGenerator {
                         if (Math.abs(ix) === w && Math.abs(iz) === w) {
                             chunk.setBlock(x + ix, y + iy, z + iz, BlockType.WOOD);
                         } else {
-                            if (iy === 1 && (ix === 0 || iz === 0) && this.random(x + ix, z + iz, iy + 300) < 0.5) {
+                            const glassRand = this.random(x + ix, z + iz, iy + 300);
+                            if (iy === 1 && (ix === 0 || iz === 0) && glassRand < 0.5) {
                                 chunk.setBlock(x + ix, y + iy, z + iz, BlockType.GLASS);
                             } else {
                                 chunk.setBlock(x + ix, y + iy, z + iz, BlockType.WOOD_PLANKS);

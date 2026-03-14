@@ -23,7 +23,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Capped at 1.5 for better perf on high-DPI
-renderer.shadowMap.enabled = false;
+renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.BasicShadowMap; // Much faster than PCFSoft
 document.getElementById('app')!.appendChild(renderer.domElement);
 
@@ -33,23 +33,23 @@ scene.add(ambientLight);
 
 const dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
 dirLight.position.set(100, 200, 50);
-dirLight.castShadow = false;
+dirLight.castShadow = true;
 dirLight.shadow.camera.left = -40; // Tighten shadow camera for better resolution at lower map size
 dirLight.shadow.camera.right = 40;
 dirLight.shadow.camera.top = 40;
 dirLight.shadow.camera.bottom = -40;
-dirLight.shadow.mapSize.width = 256;
-dirLight.shadow.mapSize.height = 256;
+dirLight.shadow.mapSize.width = 512; // Lower from 2048 to 512 for huge FPS gain
+dirLight.shadow.mapSize.height = 512;
 scene.add(dirLight);
 
 // World
 const world = new World(scene);
 
+// Initial loading so player doesn't fall through unloaded chunk
+world.update(new THREE.Vector3(0, 0, 0));
+
 // Player
 const player = new Player(camera, document.body, world);
-
-// Force initial chunk generation at 0,0
-world.update(new THREE.Vector3(0, 80, 0));
 
 // UI and Inventory
 const uiLayer = document.getElementById('ui-layer')!;
@@ -192,31 +192,19 @@ let lastHudUpdate = 0;
 
 // Auto-Realm detection
 const pathParts = window.location.pathname.split('/').filter(p => p.length > 0);
-let urlRealm = pathParts.length > 0 ? pathParts[0] : null;
-
-// Support root URL: If no realm in path but on live domain, default to 'main'
-if (!urlRealm && (window.location.hostname.includes('pages.dev') || window.location.hostname.includes('onrender.com'))) {
-    urlRealm = 'main';
-}
-
-// Smart Server Selection
-const getAutoServerIp = () => {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'localhost:8080';
-    }
-    return 'survival-multiplayer-backend.onrender.com';
-};
+const urlRealm = pathParts.length > 0 ? pathParts[0] : null;
 
 if (urlRealm) {
     console.log(`[Realm] Detected realm: ${urlRealm}`);
     const username = `Player${Math.floor(Math.random() * 1000)}`;
-    const serverIp = getAutoServerIp();
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const serverIp = isLocal ? 'localhost:8080' : 'survival-multiplayer-backend.onrender.com';
 
     // Synchronize world and spawn
     world.resetSeed(urlRealm);
     player.setSpawn(0, 0);
 
-    // Hide menu and connect immediately for auto-paths
+    // Hide menu and connect
     const menu = document.getElementById('main-menu');
     if (menu) menu.style.display = 'none';
     uiLayer.style.pointerEvents = 'none';
@@ -253,14 +241,6 @@ function animate() {
         if (hungerStat) {
             hungerStat.innerText = 'Hunger: ' + '🍗'.repeat(Math.ceil(player.survival.hunger / 2));
         }
-
-        // Update Coordinates
-        const coordStat = document.getElementById('coordinate-stats');
-        if (coordStat) {
-            const p = player.camera.position;
-            // Round to whole numbers as expected in voxel games
-            coordStat.innerText = `X: ${Math.round(p.x)}, Y: ${Math.round(p.y)}, Z: ${Math.round(p.z)}`;
-        }
         lastHudUpdate = currentTime;
     }
 
@@ -273,23 +253,13 @@ function animate() {
     // Update network
     networkManager.update();
 
-    // Update entities (remote players and mobs)
-    entityManager.update(delta, networkManager.isHost());
-
-    // Throttled light updates (only if moved > 2 units to save battery/perf)
-    const pPos = camera.position;
-    if (!(animate as any)._lastLightPos) (animate as any)._lastLightPos = new THREE.Vector3().copy(pPos);
-    if ((animate as any)._lastLightPos.distanceToSquared(pPos) > 4.0) {
-        dirLight.position.set(pPos.x + 50, pPos.y + 100, pPos.z + 50);
-        dirLight.target.position.set(pPos.x, pPos.y, pPos.z);
-        dirLight.target.updateMatrixWorld();
-        (animate as any)._lastLightPos.copy(pPos);
-    }
+    // Move sun with player for simple shadow mapping
+    dirLight.position.set(camera.position.x + 50, camera.position.y + 100, camera.position.z + 50);
+    dirLight.target.position.set(camera.position.x, camera.position.y, camera.position.z);
+    dirLight.target.updateMatrixWorld();
 
     renderer.render(scene, camera);
 }
-// Initialize helper for light throttling
-(animate as any)._lastLightPos = null;
 animate();
 
 window.addEventListener('resize', () => {
