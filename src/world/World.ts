@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import { Chunk, CHUNK_WIDTH, CHUNK_HEIGHT } from './Chunk';
+import { WorldGenerator } from './WorldGenerator';
 
-const RENDER_DISTANCE = 2; // Reduced for guaranteed 60 FPS on live site
+const RENDER_DISTANCE = 2; // Performance target: 60 FPS
 
 export class World {
     private scene: THREE.Scene;
     private chunks: Map<string, Chunk> = new Map();
     private materials: THREE.Material[];
+    private generator: WorldGenerator;
 
     private loadQueue: { x: number, z: number }[] = [];
     private loadQueueKeys: Set<string> = new Set();
@@ -16,12 +18,13 @@ export class World {
     constructor(scene: THREE.Scene) {
         this.scene = scene;
         this.materials = this.createMaterials();
+        this.generator = new WorldGenerator('default');
+        (window as any).worldGenerator = this.generator;
     }
 
     private createMaterials(): THREE.Material[] {
-        // Fast Lambert materials
         return [
-            new THREE.MeshLambertMaterial({ color: 0x000000 }), // AIR (dummy)
+            new THREE.MeshLambertMaterial({ color: 0x000000 }), // AIR
             new THREE.MeshLambertMaterial({ color: 0x228B22 }), // GRASS
             new THREE.MeshLambertMaterial({ color: 0x8B4513 }), // DIRT
             new THREE.MeshLambertMaterial({ color: 0x808080 }), // STONE
@@ -39,14 +42,12 @@ export class World {
     }
 
     public update(playerPos: THREE.Vector3) {
-        // Process up to 2 jobs per frame if FPS allows? No, keep 1 for stability.
         if (this.loadQueue.length > 0) {
             const next = this.loadQueue.shift()!;
             this.loadQueueKeys.delete(`${next.x},${next.z}`);
             this.loadChunk(next.x, next.z);
         }
 
-        // Rebuild ONLY 1 dirty chunk per frame
         for (const chunk of this.chunks.values()) {
             if (chunk.isDirty) {
                 chunk.buildMesh(this.materials);
@@ -87,12 +88,9 @@ export class World {
 
     private loadChunk(x: number, z: number) {
         const chunk = new Chunk(x, z, this.scene);
-        const generator = (window as any).worldGenerator; // Simplified access
-        if (generator) {
-            generator.generateChunk(chunk);
-            chunk.buildMesh(this.materials);
-            this.chunks.set(`${x},${z}`, chunk);
-        }
+        this.generator.generateChunk(chunk);
+        chunk.buildMesh(this.materials);
+        this.chunks.set(`${x},${z}`, chunk);
     }
 
     public getBlock(x: number, y: number, z: number): number {
@@ -116,7 +114,6 @@ export class World {
     }
 
     public resetSeed(seed: string) {
-        // Clear everything
         for (const chunk of this.chunks.values()) {
             this.scene.remove(chunk.mesh);
             if (chunk.mesh.geometry) chunk.mesh.geometry.dispose();
@@ -124,11 +121,9 @@ export class World {
         this.chunks.clear();
         this.loadQueue = [];
         this.loadQueueKeys.clear();
+        this.generator = new WorldGenerator(seed);
+        (window as any).worldGenerator = this.generator;
         this.lastPlayerChunkX = null;
         this.lastPlayerChunkZ = null;
-
-        // Re-init generator
-        const { WorldGenerator } = require('./WorldGenerator');
-        (window as any).worldGenerator = new WorldGenerator(seed);
     }
 }

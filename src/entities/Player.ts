@@ -104,8 +104,19 @@ export class Player {
     }
 
     public update(delta: number) {
-        // ALWAYS apply gravity and collision, even if unlocked
-        this.velocity.y -= this.gravity * delta;
+        // SPAWN PROTECTION: Don't fall if no block below yet
+        const blockBelow = this.world.getBlock(
+            Math.floor(this.camera.position.x),
+            Math.floor(this.camera.position.y - 10), // Look ahead
+            Math.floor(this.camera.position.z)
+        );
+
+        if (this.camera.position.y > 70 && blockBelow === BlockType.AIR) {
+            this.velocity.y = 0; // Hover while waiting for chunk
+        } else {
+            this.velocity.y -= this.gravity * delta;
+        }
+
         if (this.velocity.y < -50) this.velocity.y = -50;
 
         if (this.controls.isLocked) {
