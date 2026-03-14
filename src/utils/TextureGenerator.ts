@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // Procedurally generate simple retro pixel art textures
 // Procedurally generate simple retro pixel art textures with high detail
-export function generateTexture(pattern: 'noise' | 'grass-side' | 'wood-top' | 'cobblestone' | 'planks', colorStr: string, noiseIntensity = 15, isLeaves = false): THREE.Texture {
+export function generateTexture(pattern: 'noise' | 'grass-side' | 'wood-top' | 'cobblestone' | 'planks' | 'crafting-top' | 'crafting-side', colorStr: string, noiseIntensity = 15, isLeaves = false): THREE.Texture {
     const canvas = document.createElement('canvas');
     canvas.width = 16;
     canvas.height = 16;
@@ -60,6 +60,20 @@ export function generateTexture(pattern: 'noise' | 'grass-side' | 'wood-top' | '
         ctx.fillStyle = 'rgba(0,0,0,0.2)';
         ctx.fillRect(0, 7, 16, 1); ctx.fillRect(0, 15, 16, 1);
         ctx.fillRect(7, 0, 1, 8); ctx.fillRect(12, 8, 1, 8);
+    } else if (pattern === 'crafting-top') {
+        // Grid pattern for table top
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.fillRect(1, 1, 14, 1); ctx.fillRect(1, 1, 1, 14);
+        ctx.fillRect(1, 4, 14, 1); ctx.fillRect(4, 1, 1, 14);
+        ctx.fillRect(1, 8, 14, 1); ctx.fillRect(8, 1, 1, 14);
+        ctx.fillRect(1, 11, 14, 1); ctx.fillRect(11, 1, 1, 14);
+        ctx.fillRect(1, 14, 14, 1); ctx.fillRect(14, 1, 1, 14);
+    } else if (pattern === 'crafting-side') {
+        // Hammer/Saw patterns on sides
+        ctx.fillStyle = '#4a3321'; ctx.fillRect(0, 0, 16, 2); // Rim
+        ctx.fillStyle = '#6d4c2a'; ctx.fillRect(2, 4, 2, 4); // Drawer look
+        ctx.fillRect(10, 4, 3, 2); // Tool look
+        ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(2, 10, 12, 1);
     }
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -100,8 +114,8 @@ export function createBlockMaterials(): THREE.Material[] {
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#FFD700', 30) }), // 16: Gold Block
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#202020', 40) }), // 17: Bedrock
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#E8E8E8', 10) }), // 18: Iron Block
-        new THREE.MeshLambertMaterial({ map: generateTexture('wood-top', '#8f683f', 15) }), // 19: CT Top
-        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#8a6642', 20) }),  // 20: CT Side
+        new THREE.MeshLambertMaterial({ map: generateTexture('crafting-top', '#a07c4e', 10) }), // 19: CT Top
+        new THREE.MeshLambertMaterial({ map: generateTexture('crafting-side', '#8a6642', 20) }),  // 20: CT Side
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#cc3333', 15) }),  // 21: Bed (Red)
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#ffffff', 5) })   // 22: Wool
     ];
