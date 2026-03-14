@@ -22,7 +22,6 @@ export class NetworkManager {
         this.world = world;
         this.entityManager = entityManager;
         this.player = player;
-
         this.statusElement = document.getElementById('performance-stats');
 
         window.addEventListener('local_mob_spawn', (e: any) => {
@@ -75,6 +74,10 @@ export class NetworkManager {
             this.ws.onopen = () => {
                 console.log('[Network] Connected!');
                 this.connected = true;
+                if (this.statusElement) {
+                    this.statusElement.style.color = '#55ff55';
+                    this.statusElement.innerText = 'FPS: 0 [Online]';
+                }
 
                 // Send initial username
                 this.send({
@@ -86,7 +89,7 @@ export class NetworkManager {
                 if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
                 this.heartbeatInterval = setInterval(() => {
                     this.send({ type: 'ping' });
-                }, 15000);
+                }, 10000); // 10s heartbeat
             };
 
             this.ws.onmessage = (event) => {
@@ -105,8 +108,12 @@ export class NetworkManager {
             };
 
             this.ws.onclose = () => {
-                console.log('[Network] Disconnected. Retrying in 3s...');
+                console.log('[Network] Disconnected. Retrying in 30s...');
                 this.connected = false;
+                if (this.statusElement) {
+                    this.statusElement.style.color = '#ff5555';
+                    this.statusElement.innerText = 'FPS: 0 [Offline - Retrying]';
+                }
                 this.entityManager.clearRemotePlayers();
                 if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
 
@@ -115,7 +122,7 @@ export class NetworkManager {
                     if (!this.connected) {
                         this.connect(ip, username, realm);
                     }
-                }, 30000); // 30s delay to avoid spamming if server is down, but keep trying
+                }, 30000); // 30s delay
             };
         } catch (e) {
             console.error('[Network] Failed to create WebSocket:', e);

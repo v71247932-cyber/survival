@@ -52,13 +52,11 @@ export class WorldGenerator {
                 const worldX = dx + x;
                 const worldZ = dz + z;
 
-                // Base terrain height and biomes
-                const e = 1 * this.noise(1 * worldX, 1 * worldZ, 0.005)
-                    + 0.5 * this.noise(2 * worldX, 2 * worldZ, 0.01)
-                    + 0.25 * this.noise(4 * worldX, 4 * worldZ, 0.02);
+                // Base terrain height - simplified to 1 octave for 60+ FPS on live site
+                const e = this.noise(worldX, worldZ, 0.012);
 
                 // Map e from roughly -1..1 to height
-                const height = Math.floor(40 + (e + 1) * 20);
+                const height = Math.floor(48 + e * 12);
                 heightmap[x][z] = height;
 
                 // Humidity/temperature for biomes
