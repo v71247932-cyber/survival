@@ -109,6 +109,44 @@ export class Player {
         this.isCrouching = false;
     }
 
+    public getState() {
+        return {
+            position: { x: this.camera.position.x, y: this.camera.position.y, z: this.camera.position.z },
+            rotation: { y: this.camera.rotation.y },
+            health: this.survival.health,
+            hunger: this.survival.hunger,
+            inventory: {
+                hotbar: JSON.parse(JSON.stringify(this.inventory.hotbar)),
+                main: JSON.parse(JSON.stringify(this.inventory.main))
+            }
+        };
+    }
+
+    public loadState(state: any) {
+        this.camera.position.set(state.position.x, state.position.y, state.position.z);
+        this.camera.rotation.y = state.rotation.y;
+        this.survival.health = state.health;
+        this.survival.hunger = state.hunger;
+
+        // Deep copy inventory
+        for (let i = 0; i < 9; i++) {
+            this.inventory.hotbar[i] = { ...state.inventory.hotbar[i] };
+        }
+        for (let i = 0; i < 27; i++) {
+            this.inventory.main[i] = { ...state.inventory.main[i] };
+        }
+
+        window.dispatchEvent(new CustomEvent('inventory_updated'));
+
+        // Reset movement states
+        this.moveForward = false;
+        this.moveBackward = false;
+        this.moveLeft = false;
+        this.moveRight = false;
+        this.isRunning = false;
+        this.isCrouching = false;
+    }
+
     private onKeyDown(event: KeyboardEvent) {
         switch (event.code) {
             case 'ArrowUp':

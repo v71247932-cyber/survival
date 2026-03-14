@@ -10,12 +10,29 @@ export class World {
     public chunks: Map<string, Chunk> = new Map();
     public scene: THREE.Scene;
     private generator: WorldGenerator;
-    private materials: THREE.Material[];
+    public materials: THREE.Material[];
+    public modifiedBlocks: Map<string, BlockType> = new Map();
 
     constructor(scene: THREE.Scene, seed?: number | string) {
         this.scene = scene;
         this.generator = new WorldGenerator(seed);
         this.materials = createBlockMaterials();
+    }
+
+    public getSaveData(): { [key: string]: number } {
+        const obj: { [key: string]: number } = {};
+        this.modifiedBlocks.forEach((val, key) => {
+            obj[key] = val;
+        });
+        return obj;
+    }
+
+    public loadSaveData(data: { [key: string]: number }) {
+        this.modifiedBlocks.clear();
+        for (const key in data) {
+            this.modifiedBlocks.set(key, data[key]);
+        }
+        this.clearChunks();
     }
 
     public resetSeed(seed: string) {
@@ -67,6 +84,21 @@ export class World {
     private loadChunk(dx: number, dz: number) {
         const chunk = new Chunk(dx, dz);
         this.generator.generateChunk(chunk);
+
+        // Apply modifications
+        for (let x = 0; x < 16; x++) {
+            for (let z = 0; z < 16; z++) {
+                for (let y = 0; y < 128; y++) {
+                    const worldX = dx * 16 + x;
+                    const worldZ = dz * 16 + z;
+                    const key = `${worldX},${y},${worldZ}`;
+                    if (this.modifiedBlocks.has(key)) {
+                        chunk.setBlock(x, y, z, this.modifiedBlocks.get(key)!);
+                    }
+                }
+            }
+        }
+
         chunk.buildMesh(this.materials);
         this.scene.add(chunk.mesh);
         this.chunks.set(`${dx},${dz}`, chunk);
@@ -98,6 +130,11 @@ export class World {
         if (lz < 0) lz += CHUNK_WIDTH;
 
         chunk.setBlock(lx, Math.floor(y), lz, type);
+
+        // Track modification
+        const key = `${Math.floor(x)},${Math.floor(y)},${Math.floor(z)}`;
+        this.modifiedBlocks.set(key, type);
+
         // buildMesh is now called in update() if chunk is dirty
 
         // Dispatch event for network

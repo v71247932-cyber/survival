@@ -1,3 +1,4 @@
+import { SaveManager } from '../utils/SaveManager';
 import { World } from '../world/World';
 import { Player } from '../entities/Player';
 
@@ -62,8 +63,24 @@ export class UIManager {
                             <button id="btn-create-realm" style="padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; background: #55ff55; color: #000; border: none; cursor: pointer;">Create</button>
                         </div>
                         <input id="menu-ip" type="text" placeholder="Server Address" style="padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" value="localhost:8080" />
-                        <button id="btn-singleplayer" style="padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; background: #fff; color: #000; border: none; cursor: pointer;">Start Adventure</button>
+                        <button id="btn-singleplayer" style="padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; background: #fff; color: #000; border: none; cursor: pointer;">Start New Adventure</button>
+                        
+                        <div id="saved-worlds-container" style="margin-top: 20px; text-align: left; display: none;">
+                            <h3 style="font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Continue Adventure</h3>
+                            <div id="saved-worlds-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 5px;"></div>
+                        </div>
+
                         <button id="btn-multiplayer" style="padding: 16px; border-radius: 12px; font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">Connect to Realm</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="escape-menu" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); justify-content: center; align-items: center; z-index: 1010; font-family: 'Inter', sans-serif; pointer-events: auto;">
+                <div style="background: rgba(10,20,30,0.9); padding: 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); text-align: center; width: 300px;">
+                    <h2 style="color: white; margin-top: 0; margin-bottom: 30px; font-weight: 900; letter-spacing: -0.5px;">PAUSED</h2>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <button id="btn-resume" style="padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; background: #fff; color: #000; border: none; cursor: pointer;">Back to Game</button>
+                        <button id="btn-save-leave" style="padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; background: rgba(255,50,50,0.2); color: #ff5555; border: 1px solid rgba(255,85,85,0.3); cursor: pointer;">Save and Leave</button>
                     </div>
                 </div>
             </div>
@@ -126,6 +143,24 @@ export class UIManager {
                 font-size: 12px;
                 color: rgba(255,255,255,0.4);
             }
+            .save-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 16px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .save-item:hover {
+                background: rgba(255,255,255,0.1);
+                border-color: rgba(255,255,255,0.3);
+                transform: translateX(4px);
+            }
+            .save-item .name { font-weight: 700; color: #fff; }
+            .save-item .date { font-size: 11px; color: rgba(255,255,255,0.3); }
         `;
         document.head.appendChild(style);
 
@@ -141,6 +176,26 @@ export class UIManager {
 
         const btnCreate = document.getElementById('btn-create-realm');
         const inputRealm = document.getElementById('menu-realm-name') as HTMLInputElement;
+
+        // Escape Menu
+        const btnResume = document.getElementById('btn-resume');
+        const btnSaveLeave = document.getElementById('btn-save-leave');
+
+        if (btnResume) {
+            btnResume.addEventListener('click', () => {
+                this.toggleEscapeMenu();
+                this.player.controls.lock();
+            });
+        }
+
+        if (btnSaveLeave) {
+            btnSaveLeave.addEventListener('click', () => {
+                // Dispatch event to main.ts to handle saving
+                window.dispatchEvent(new CustomEvent('request_save_and_leave'));
+            });
+        }
+
+        this.updateSavedWorldsList();
 
         if (menu && btnSingle && btnMulti && btnCreate && inputUsername && inputIp && inputRealm) {
             btnSingle.addEventListener('click', () => {
@@ -181,6 +236,57 @@ export class UIManager {
                 this.player.controls.lock();
             });
         }
+    }
+
+    public updateSavedWorldsList() {
+        const container = document.getElementById('saved-worlds-container');
+        const list = document.getElementById('saved-worlds-list');
+        if (!container || !list) return;
+
+        const realms = SaveManager.getSavedRealms();
+        if (realms.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+        list.innerHTML = '';
+
+        realms.sort((a, b) => {
+            const dataA = SaveManager.loadWorld(a);
+            const dataB = SaveManager.loadWorld(b);
+            return (dataB?.timestamp || 0) - (dataA?.timestamp || 0);
+        });
+
+        realms.forEach(realm => {
+            const data = SaveManager.loadWorld(realm);
+            if (!data) return;
+
+            const date = new Date(data.timestamp).toLocaleString();
+            const item = document.createElement('div');
+            item.className = 'save-item';
+            item.innerHTML = `
+                <div class="name">${realm}</div>
+                <div class="date">${date}</div>
+            `;
+            item.addEventListener('click', () => {
+                const baseUrl = window.location.origin + window.location.pathname;
+                const joinUrl = baseUrl.endsWith('/') ? baseUrl + realm : baseUrl + '/' + realm;
+                window.location.href = joinUrl;
+            });
+            list.appendChild(item);
+        });
+    }
+
+    public toggleEscapeMenu() {
+        const menu = document.getElementById('escape-menu');
+        if (menu) {
+            const isVisible = menu.style.display === 'none';
+            menu.style.display = isVisible ? 'flex' : 'none';
+            this.container.style.pointerEvents = isVisible ? 'auto' : 'none';
+            return isVisible;
+        }
+        return false;
     }
 
     public showItemName(name: string) {

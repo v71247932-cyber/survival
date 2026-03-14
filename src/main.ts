@@ -6,6 +6,7 @@ import { UIManager } from './ui/UIManager';
 import { InventoryController } from './gameplay/InventoryController';
 import { EntityManager } from './entities/EntityManager';
 import { NetworkManager } from './network/NetworkManager';
+import { SaveManager } from './utils/SaveManager';
 
 // Setup Scene
 const scene = new THREE.Scene();
@@ -109,6 +110,15 @@ document.addEventListener('keydown', (e) => {
             updatePlayerListUI();
         }
     }
+
+    if (e.code === 'Escape') {
+        const isPaused = ui.toggleEscapeMenu();
+        if (isPaused) {
+            player.controls.unlock();
+        } else {
+            player.controls.lock();
+        }
+    }
 });
 
 document.addEventListener('keyup', (e) => {
@@ -174,6 +184,26 @@ window.addEventListener('chat_message', (e: Event) => {
     addChatMessage(data.username, data.message, color);
 });
 
+// Save Logic
+function saveGame() {
+    if (!urlRealm) return;
+
+    const saveData = {
+        seed: urlRealm,
+        modifiedBlocks: world.getSaveData(),
+        player: player.getState(),
+        timestamp: Date.now()
+    };
+
+    SaveManager.saveWorld(urlRealm, saveData);
+}
+
+window.addEventListener('request_save_and_leave', () => {
+    saveGame();
+    // Redirect to main menu (root)
+    window.location.href = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') || '/';
+});
+
 // Entities
 const entityManager = new EntityManager(scene, world, player);
 
@@ -209,8 +239,18 @@ if (urlRealm) {
     if (menu) menu.style.display = 'none';
     uiLayer.style.pointerEvents = 'none';
 
+    // Load saved data if exists
+    const savedData = SaveManager.loadWorld(urlRealm);
+    if (savedData) {
+        console.log(`[Save] Loading saved data for realm: ${urlRealm}`);
+        world.loadSaveData(savedData.modifiedBlocks);
+        player.loadState(savedData.player);
+    }
+
     networkManager.connect(serverIp, username, urlRealm);
 }
+
+let lastSaveTime = performance.now();
 
 function animate() {
     requestAnimationFrame(animate);
@@ -242,6 +282,13 @@ function animate() {
             hungerStat.innerText = 'Hunger: ' + '🍗'.repeat(Math.ceil(player.survival.hunger / 2));
         }
         lastHudUpdate = currentTime;
+    }
+
+    // Auto-save every 1 minute
+    if (currentTime - lastSaveTime > 60000) {
+        saveGame();
+        lastSaveTime = currentTime;
+        console.log('[Save] Auto-saved world data.');
     }
 
     // Update player & physics
