@@ -88,10 +88,25 @@ export class Player {
     }
 
     public setSpawn(x: number, z: number) {
+        // Force world update at target position to ensure chunks are loaded
+        this.world.update(new THREE.Vector3(x, 0, z));
+
+        // Find highest block
         let spawnY = 120;
-        while (spawnY > 0 && this.world.getBlock(x, spawnY - 1, z) === BlockType.AIR) spawnY--;
+        while (spawnY > 0 && this.world.getBlock(x, spawnY - 1, z) === BlockType.AIR) {
+            spawnY--;
+        }
+
         this.camera.position.set(x, spawnY + this.normalHeight, z);
         this.velocity.set(0, 0, 0);
+
+        // Reset movement states to prevent "ghost movement"
+        this.moveForward = false;
+        this.moveBackward = false;
+        this.moveLeft = false;
+        this.moveRight = false;
+        this.isRunning = false;
+        this.isCrouching = false;
     }
 
     private onKeyDown(event: KeyboardEvent) {

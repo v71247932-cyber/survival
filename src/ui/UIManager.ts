@@ -144,8 +144,10 @@ export class UIManager {
 
         if (menu && btnSingle && btnMulti && btnCreate && inputUsername && inputIp && inputRealm) {
             btnSingle.addEventListener('click', () => {
+                this.player.setSpawn(0, 0);
                 menu.style.display = 'none';
                 this.container.style.pointerEvents = 'none';
+                this.player.controls.lock();
             });
 
             btnCreate.addEventListener('click', () => {
@@ -175,6 +177,7 @@ export class UIManager {
                 }
                 menu.style.display = 'none';
                 this.container.style.pointerEvents = 'none';
+                this.player.controls.lock();
             });
         }
     }
