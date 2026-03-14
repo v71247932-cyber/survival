@@ -102,9 +102,24 @@ export class WorldGenerator {
         }
         // Leaves
         for (let lx = -2; lx <= 2; lx++) {
-            for (let ly = height - 2; ly <= height + 1; ly++) {
+            for (let ly = height - 3; ly <= height + 1; ly++) {
                 for (let lz = -2; lz <= 2; lz++) {
-                    if (Math.abs(lx) === 2 && Math.abs(lz) === 2 && (ly === height + 1 || Math.random() < 0.5)) continue;
+                    const absX = Math.abs(lx);
+                    const absZ = Math.abs(lz);
+                    const dist = absX + absZ;
+
+                    // Create a fuller, slightly rounded cube for the canopy
+                    if (ly >= height) {
+                        // Top part of canopy (narrower)
+                        if (dist > 2) continue;
+                    } else if (ly >= height - 1) {
+                        // Middle part (full width)
+                        if (absX === 2 && absZ === 2 && Math.random() < 0.3) continue;
+                    } else {
+                        // Bottom part (wider but with corner cuts)
+                        if (dist > 3) continue;
+                    }
+
                     if (chunk.getBlock(x + lx, y + ly, z + lz) === BlockType.AIR) {
                         chunk.setBlock(x + lx, y + ly, z + lz, BlockType.LEAVES);
                     }
