@@ -83,7 +83,7 @@ export class NetworkManager {
                 if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
                 this.heartbeatInterval = setInterval(() => {
                     this.send({ type: 'ping' });
-                }, 30000);
+                }, 15000);
             };
 
             this.ws.onmessage = (event) => {

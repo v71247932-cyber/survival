@@ -32,10 +32,25 @@ export class World {
     }
 
     private loadQueue: { x: number, z: number }[] = [];
+    private lastPlayerChunkX: number | null = null;
+    private lastPlayerChunkZ: number | null = null;
 
     public update(playerPos: THREE.Vector3) {
         const pChunkX = Math.floor(playerPos.x / CHUNK_WIDTH);
         const pChunkZ = Math.floor(playerPos.z / CHUNK_WIDTH);
+
+        // Process only 1 chunk per frame to maintain high FPS
+        if (this.loadQueue.length > 0) {
+            const next = this.loadQueue.shift()!;
+            this.loadChunk(next.x, next.z);
+        }
+
+        // Only recalculate visible chunks if the player moved to a new chunk
+        if (this.lastPlayerChunkX === pChunkX && this.lastPlayerChunkZ === pChunkZ) {
+            return;
+        }
+        this.lastPlayerChunkX = pChunkX;
+        this.lastPlayerChunkZ = pChunkZ;
 
         const chunksInRadius = new Set<string>();
 
