@@ -11,6 +11,7 @@ interface PlayerState {
     position: { x: number, y: number, z: number };
     rotation: { y: number };
     realm: string;
+    ip: string;
 }
 
 const clients = new Map<WebSocket, PlayerState>();
@@ -21,18 +22,22 @@ wss.on('connection', (ws, req) => {
     const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
     const realm = url.searchParams.get('realm') || 'default';
 
+    // Detect IP
+    const ip = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown').split(',')[0];
+
     const clientId = `player_${nextClientId++}`;
     const playerState: PlayerState = {
         id: clientId,
         username: `Guest_${Math.floor(Math.random() * 1000)}`,
         position: { x: 0, y: 100, z: 0 },
         rotation: { y: 0 },
-        realm: realm
+        realm: realm,
+        ip: ip
     };
 
     clients.set(ws, playerState);
 
-    console.log(`[Server] Client connected: ${clientId} (${playerState.username}) to Realm: ${realm}`);
+    console.log(`[Server] Client connected: ${clientId} (${playerState.username}) from IP: ${ip} to Realm: ${realm}`);
 
     // Send the client their own ID
     ws.send(JSON.stringify({
@@ -47,6 +52,14 @@ wss.on('connection', (ws, req) => {
         type: 'player_list',
         players: existingPlayers
     }));
+
+    // Broadcast announcement to everyone else IN THE SAME REALM
+    broadcast(realm, {
+        type: 'chat',
+        id: 'server',
+        username: 'Server',
+        message: `Player ${playerState.username} with IP ${ip} connected`
+    });
 
     // Broadcast to everyone else IN THE SAME REALM that a new player joined
     broadcast(realm, {
@@ -87,7 +100,6 @@ function handleClientMessage(ws: WebSocket, state: PlayerState, data: any) {
         case 'move':
             state.position = data.position;
             state.rotation = data.rotation;
-            // Send position updates frequently. In a larger game we might batch these at 20 ticks/sec
             broadcast(realm, {
                 type: 'player_move',
                 id: state.id,
@@ -104,15 +116,13 @@ function handleClientMessage(ws: WebSocket, state: PlayerState, data: any) {
                     username: 'Server',
                     message: `${state.id} changed name to ${state.username}`
                 });
-                // Broadcast updated player list or a specific rename event (re-using join for simplicity in this prototype)
                 broadcast(realm, {
-                    type: 'player_join', // Simplest way to update clients without a dedicated rename event in standard boilerplate
+                    type: 'player_join',
                     player: state
                 });
             }
             break;
         case 'block_update':
-            // data should contain { x, y, z, blockType }
             broadcast(realm, {
                 type: 'block_update',
                 id: state.id,
