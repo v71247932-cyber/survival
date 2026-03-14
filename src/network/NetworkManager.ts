@@ -47,7 +47,14 @@ export class NetworkManager {
             this.ws.close();
         }
 
-        let url = ip.startsWith('ws://') || ip.startsWith('wss://') ? ip : `ws://${ip}`;
+        let protocol = 'ws://';
+        if (ip.startsWith('ws://') || ip.startsWith('wss://')) {
+            protocol = '';
+        } else if (!ip.includes('localhost') && !ip.includes('127.0.0.1')) {
+            protocol = 'wss://';
+        }
+
+        let url = `${protocol}${ip}`;
         if (realm) {
             const separator = url.includes('?') ? '&' : '?';
             url += `${separator}realm=${encodeURIComponent(realm)}`;

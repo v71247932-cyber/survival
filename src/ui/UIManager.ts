@@ -61,7 +61,7 @@ export class UIManager {
                             <input id="menu-realm-name" type="text" placeholder="Realm Name" style="flex: 1; padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" />
                             <button id="btn-create-realm" style="padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; background: #55ff55; color: #000; border: none; cursor: pointer;">Create</button>
                         </div>
-                        <input id="menu-ip" type="text" placeholder="Server Address" style="padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" value="localhost:8080" />
+                        <input id="menu-ip" type="text" placeholder="Server Address" style="padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" value="survival-multiplayer-backend.onrender.com" />
                         <button id="btn-singleplayer" style="padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; background: #fff; color: #000; border: none; cursor: pointer;">Start Adventure</button>
                         <button id="btn-multiplayer" style="padding: 16px; border-radius: 12px; font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">Connect to Realm</button>
                     </div>

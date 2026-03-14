@@ -197,7 +197,7 @@ const urlRealm = pathParts.length > 0 ? pathParts[0] : null;
 if (urlRealm) {
     console.log(`[Realm] Detected realm: ${urlRealm}`);
     const username = `Player${Math.floor(Math.random() * 1000)}`;
-    const serverIp = 'localhost:8080'; // Default, ideally this should be production server
+    const serverIp = 'survival-multiplayer-backend.onrender.com'; // Production server
 
     // Synchronize world and spawn
     world.resetSeed(urlRealm);
