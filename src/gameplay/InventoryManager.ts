@@ -12,6 +12,10 @@ export class InventoryManager {
         this.addItem(ItemID.WOODEN_PICKAXE, 1, 50);
     }
 
+    private notifyUI() {
+        window.dispatchEvent(new CustomEvent('inventory_updated'));
+    }
+
     public addItem(item: ItemID, count: number, durability?: number): boolean {
         // Find existing stack
         for (let i = 0; i < 9; i++) {
@@ -19,7 +23,10 @@ export class InventoryManager {
                 const add = Math.min(64 - this.hotbar[i].count, count);
                 this.hotbar[i] = { item, count: this.hotbar[i].count + add };
                 count -= add;
-                if (count === 0) return true;
+                if (count === 0) {
+                    this.notifyUI();
+                    return true;
+                }
             }
         }
         for (let i = 0; i < 27; i++) {
@@ -27,7 +34,10 @@ export class InventoryManager {
                 const add = Math.min(64 - this.main[i].count, count);
                 this.main[i] = { item, count: this.main[i].count + add };
                 count -= add;
-                if (count === 0) return true;
+                if (count === 0) {
+                    this.notifyUI();
+                    return true;
+                }
             }
         }
 
@@ -35,12 +45,14 @@ export class InventoryManager {
         for (let i = 0; i < 9; i++) {
             if (this.hotbar[i].item === ItemID.NONE) {
                 this.hotbar[i] = { item, count, durability };
+                this.notifyUI();
                 return true;
             }
         }
         for (let i = 0; i < 27; i++) {
             if (this.main[i].item === ItemID.NONE) {
                 this.main[i] = { item, count, durability };
+                this.notifyUI();
                 return true;
             }
         }
@@ -59,6 +71,7 @@ export class InventoryManager {
             if (slot.count <= 0) {
                 this.hotbar[this.selectedHotbarSlot] = { item: ItemID.NONE, count: 0 };
             }
+            this.notifyUI();
         }
     }
 
@@ -69,6 +82,7 @@ export class InventoryManager {
             if (slot.durability <= 0) {
                 this.hotbar[this.selectedHotbarSlot] = { item: ItemID.NONE, count: 0 };
             }
+            this.notifyUI();
         }
     }
 
@@ -79,5 +93,6 @@ export class InventoryManager {
         const temp = fromArr[fromIdx];
         fromArr[fromIdx] = toArr[toIdx];
         toArr[toIdx] = temp;
+        this.notifyUI();
     }
 }

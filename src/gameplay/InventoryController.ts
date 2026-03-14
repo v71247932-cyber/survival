@@ -29,6 +29,10 @@ export class InventoryController {
             }
         });
 
+        window.addEventListener('inventory_updated', () => {
+            this.render();
+        });
+
         // Click to move items
         document.addEventListener('click', (e) => {
             const target = e.target as HTMLElement;
