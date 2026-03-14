@@ -16,11 +16,14 @@ export class NetworkManager {
 
     private lastSentPos = new THREE.Vector3();
     private lastSentRotY = 0;
+    private statusElement: HTMLElement | null = null;
 
     constructor(world: World, entityManager: EntityManager, player: Player) {
         this.world = world;
         this.entityManager = entityManager;
         this.player = player;
+
+        this.statusElement = document.getElementById('performance-stats');
 
         window.addEventListener('local_mob_spawn', (e: any) => {
             const mob = e.detail;
