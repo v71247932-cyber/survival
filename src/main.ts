@@ -194,10 +194,18 @@ let lastHudUpdate = 0;
 const pathParts = window.location.pathname.split('/').filter(p => p.length > 0);
 const urlRealm = pathParts.length > 0 ? pathParts[0] : null;
 
+// Smart Server Selection
+const getAutoServerIp = () => {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'localhost:8080';
+    }
+    return 'survival-multiplayer-backend.onrender.com';
+};
+
 if (urlRealm) {
     console.log(`[Realm] Detected realm: ${urlRealm}`);
     const username = `Player${Math.floor(Math.random() * 1000)}`;
-    const serverIp = 'localhost:8080'; // Default, ideally this should be production server
+    const serverIp = getAutoServerIp();
 
     // Synchronize world and spawn
     world.resetSeed(urlRealm);
@@ -245,7 +253,8 @@ function animate() {
         const coordStat = document.getElementById('coordinate-stats');
         if (coordStat) {
             const p = player.camera.position;
-            coordStat.innerText = `X: ${p.x.toFixed(1)}, Y: ${p.y.toFixed(1)}, Z: ${p.z.toFixed(1)}`;
+            // Round to whole numbers as expected in voxel games
+            coordStat.innerText = `X: ${Math.round(p.x)}, Y: ${Math.round(p.y)}, Z: ${Math.round(p.z)}`;
         }
         lastHudUpdate = currentTime;
     }
