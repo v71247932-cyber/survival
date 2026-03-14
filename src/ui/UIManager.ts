@@ -112,44 +112,45 @@ export class UIManager {
         }
     }
 
-    const inv = document.getElementById('inventory-screen');
-    if(inv) {
-        const isVisible = inv.style.display === 'none';
-        inv.style.display = isVisible ? 'flex' : 'none';
-        // Enable/disable pointer events on the container so we can click the inventory
-        this.container.style.pointerEvents = isVisible ? 'auto' : 'none';
-    }
+    public toggleInventory() {
+        const inv = document.getElementById('inventory-screen');
+        if (inv) {
+            const isVisible = inv.style.display === 'none';
+            inv.style.display = isVisible ? 'flex' : 'none';
+            // Enable/disable pointer events on the container so we can click the inventory
+            this.container.style.pointerEvents = isVisible ? 'auto' : 'none';
+        }
         return inv?.style.display === 'flex';
     }
 
     // Updated with high-quality CSS "textures"
     public static renderItemIcon(id: number): string {
-    if (id === 0) return '';
+        if (id === 0) return '';
 
-    // Premium color palettes for "detailed" look
-    const palettes: Record<number, { c1: string, c2: string }> = {
-        1: { c1: '#55ff55', c2: '#22aa22' }, // Grass (Vibrant)
-        2: { c1: '#885533', c2: '#442211' }, // Dirt (Rich)
-        3: { c1: '#aaaaaa', c2: '#555555' }, // Stone (Granite)
-        4: { c1: '#bb8866', c2: '#774422' }, // Wood (Oak)
-        5: { c1: '#228822', c2: '#114411' }, // Leaves (Deep)
-        6: { c1: '#eeeebb', c2: '#ccaa88' }, // Sand (Smooth)
-        9: { c1: '#999999', c2: '#666666' }, // Cobblestone
-        10: { c1: '#eebb88', c2: '#cc9966' }, // Wood Planks
-        11: { c1: '#777777', c2: '#444444' }, // Gravel
-        12: { c1: '#cc5544', c2: '#882211' }, // Bricks
-        13: { c1: '#ebd6a7', c2: '#d4b37d' }, // Sandstone
-        14: { c1: '#ffee77', c2: '#ffcc00' }, // Gold
-        15: { c1: '#333333', c2: '#111111' }, // Bedrock
-    };
+        // Premium color palettes for "detailed" look
+        const palettes: Record<number, { c1: string, c2: string }> = {
+            1: { c1: '#55ff55', c2: '#22aa22' }, // Grass (Vibrant)
+            2: { c1: '#885533', c2: '#442211' }, // Dirt (Rich)
+            3: { c1: '#aaaaaa', c2: '#555555' }, // Stone (Granite)
+            4: { c1: '#bb8866', c2: '#774422' }, // Wood (Oak)
+            5: { c1: '#228822', c2: '#114411' }, // Leaves (Deep)
+            6: { c1: '#eeeebb', c2: '#ccaa88' }, // Sand (Smooth)
+            9: { c1: '#999999', c2: '#666666' }, // Cobblestone
+            10: { c1: '#eebb88', c2: '#cc9966' }, // Wood Planks
+            11: { c1: '#777777', c2: '#444444' }, // Gravel
+            12: { c1: '#cc5544', c2: '#882211' }, // Bricks
+            13: { c1: '#ebd6a7', c2: '#d4b37d' }, // Sandstone
+            14: { c1: '#ffee77', c2: '#ffcc00' }, // Gold
+            15: { c1: '#333333', c2: '#111111' }, // Bedrock
+        };
 
-    if (id === 50) return `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-15deg);">🥢</div>`; // Stick
-    if (id >= 100) {
-        const toolColor = id === 101 ? '#aaa' : '#8f683f';
-        return `<div style="font-size: 28px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 2px ${toolColor});">⛏️</div>`;
+        if (id === 50) return `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-15deg);">🥢</div>`; // Stick
+        if (id >= 100) {
+            const toolColor = id === 101 ? '#aaa' : '#8f683f';
+            return `<div style="font-size: 28px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 2px ${toolColor});">⛏️</div>`;
+        }
+
+        const p = palettes[id] || { c1: '#ff00ff', c2: '#880088' };
+        return `<div class="item-icon item-detail" style="--c1: ${p.c1}; --c2: ${p.c2};"></div>`;
     }
-
-    const p = palettes[id] || { c1: '#ff00ff', c2: '#880088' };
-    return `<div class="item-icon item-detail" style="--c1: ${p.c1}; --c2: ${p.c2};"></div>`;
-}
 }
