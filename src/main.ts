@@ -45,11 +45,11 @@ scene.add(dirLight);
 // World
 const world = new World(scene);
 
-// Initial loading so player doesn't fall through unloaded chunk
-world.update(new THREE.Vector3(0, 0, 0));
-
 // Player
 const player = new Player(camera, document.body, world);
+
+// Force initial chunk generation at 0,0
+world.update(new THREE.Vector3(0, 80, 0));
 
 // UI and Inventory
 const uiLayer = document.getElementById('ui-layer')!;
