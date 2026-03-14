@@ -4,16 +4,31 @@ import { BlockType } from './BlockInfo';
 import { StructureGenerator } from './StructureGenerator';
 
 export class WorldGenerator {
-    private noise2D = createNoise2D();
-    private noise3D = createNoise3D();
+    private noise2D: (x: number, y: number) => number;
+    private noise3D: (x: number, y: number, z: number) => number;
     private seedOffset: number;
+    private prng: () => number;
 
     constructor(seed?: number | string) {
         if (typeof seed === 'string') {
             this.seedOffset = this.hashString(seed);
         } else {
-            this.seedOffset = seed || Math.random() * 10000;
+            this.seedOffset = seed || Math.floor(Math.random() * 10000);
         }
+
+        // Use a seeded PRNG for deterministic noise and random numbers
+        this.prng = this.createPRNG(this.seedOffset);
+        this.noise2D = createNoise2D(this.prng);
+        this.noise3D = createNoise3D(this.prng);
+    }
+
+    private createPRNG(seed: number) {
+        let t = (seed % 2147483647) + 0x6D2B79F5;
+        return () => {
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
     }
 
     private hashString(str: string): number {
@@ -23,7 +38,7 @@ export class WorldGenerator {
             hash = ((hash << 5) - hash) + char;
             hash = hash & hash; // Convert to 32bit integer
         }
-        return Math.abs(hash) % 10000;
+        return Math.abs(hash);
     }
 
     public generateChunk(chunk: Chunk) {
@@ -85,7 +100,7 @@ export class WorldGenerator {
                             // Ores
                             const oreNoise = this.noise3D(worldX * 0.1, y * 0.1, worldZ * 0.1);
                             if (oreNoise > 0.7) {
-                                if (y < 20 && Math.random() < 0.3) chunk.setBlock(x, y, z, BlockType.GOLD_BLOCK);
+                                if (y < 20 && this.prng() < 0.3) chunk.setBlock(x, y, z, BlockType.GOLD_BLOCK);
                                 else if (y < 40) chunk.setBlock(x, y, z, BlockType.IRON_BLOCK);
                                 else chunk.setBlock(x, y, z, BlockType.STONE);
                             } else {
@@ -96,7 +111,7 @@ export class WorldGenerator {
                 }
 
                 // Trees
-                if (height > 44 && moisture >= -0.2 && Math.random() < 0.01) {
+                if (height > 44 && moisture >= -0.2 && this.prng() < 0.01) {
                     this.generateTree(chunk, x, height + 1, z);
                 }
             }
@@ -108,7 +123,7 @@ export class WorldGenerator {
     }
 
     private generateTree(chunk: Chunk, x: number, y: number, z: number) {
-        const height = 4 + Math.floor(Math.random() * 3);
+        const height = 4 + Math.floor(this.prng() * 3);
         // Trunk
         for (let i = 0; i < height; i++) {
             chunk.setBlock(x, y + i, z, BlockType.WOOD);
@@ -127,7 +142,7 @@ export class WorldGenerator {
                         if (dist > 2) continue;
                     } else if (ly >= height - 1) {
                         // Middle part (full width)
-                        if (absX === 2 && absZ === 2 && Math.random() < 0.3) continue;
+                        if (absX === 2 && absZ === 2 && this.prng() < 0.3) continue;
                     } else {
                         // Bottom part (wider but with corner cuts)
                         if (dist > 3) continue;
