@@ -52,6 +52,8 @@ export class UIManager {
                     </div>
                 </div>
             </div>
+
+            <div id="floating-item" style="position: fixed; pointer-events: none; z-index: 2000; width: 46px; height: 46px; display: none; justify-content: center; align-items: center;"></div>
         `;
 
         // Add minimal CSS for slot contents
@@ -71,6 +73,18 @@ export class UIManager {
                 box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4);
                 border: 1px solid rgba(255,255,255,0.2);
             }
+            #floating-item .item-count {
+                bottom: -5px;
+                right: -5px;
+                font-size: 14px;
+                padding: 2px 6px;
+            }
+            #floating-item .item-icon {
+                width: 40px;
+                height: 40px;
+                filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+            }
+        `;, StartLine: 68, TargetContent:
         `;
         document.head.appendChild(style);
 
@@ -104,7 +118,7 @@ export class UIManager {
 
     public updateHotbarSelection(index: number) {
         for (let i = 0; i < 9; i++) {
-            const el = document.getElementById(`hotbar-${i}`);
+            const el = document.getElementById(`hotbar - ${ i } `);
             if (el) {
                 if (i === index) el.classList.add('selected');
                 else el.classList.remove('selected');
@@ -144,7 +158,7 @@ export class UIManager {
             15: { c1: '#333333', c2: '#111111' }, // Bedrock
         };
 
-        if (id === 50) return `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-15deg);">🥢</div>`; // Stick
+        if (id === 50) return `< div style = "font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(-15deg);" >🥢</div>`; / / Stick
         if (id >= 100) {
             const toolColor = id === 101 ? '#aaa' : '#8f683f';
             return `<div style="font-size: 28px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 2px ${toolColor});">⛏️</div>`;
