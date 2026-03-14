@@ -11,6 +11,7 @@ interface PlayerState {
     position: { x: number, y: number, z: number };
     rotation: { y: number };
     realm: string;
+    ip: string;
 }
 
 const clients = new Map<WebSocket, PlayerState>();
@@ -21,18 +22,22 @@ wss.on('connection', (ws, req) => {
     const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
     const realm = url.searchParams.get('realm') || 'default';
 
+    // Detect IP
+    const ip = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown').split(',')[0];
+
     const clientId = `player_${nextClientId++}`;
     const playerState: PlayerState = {
         id: clientId,
         username: `Guest_${Math.floor(Math.random() * 1000)}`,
         position: { x: 0, y: 100, z: 0 },
         rotation: { y: 0 },
-        realm: realm
+        realm: realm,
+        ip: ip
     };
 
     clients.set(ws, playerState);
 
-    console.log(`[Server] Client connected: ${clientId} (${playerState.username}) to Realm: ${realm}`);
+    console.log(`[Server] Client connected: ${clientId} (${playerState.username}) from IP: ${ip} to Realm: ${realm}`);
 
     // Send the client their own ID
     ws.send(JSON.stringify({
