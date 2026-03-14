@@ -192,7 +192,12 @@ let lastHudUpdate = 0;
 
 // Auto-Realm detection
 const pathParts = window.location.pathname.split('/').filter(p => p.length > 0);
-const urlRealm = pathParts.length > 0 ? pathParts[0] : null;
+let urlRealm = pathParts.length > 0 ? pathParts[0] : null;
+
+// Support root URL: If no realm in path but on live domain, default to 'main'
+if (!urlRealm && (window.location.hostname.includes('pages.dev') || window.location.hostname.includes('onrender.com'))) {
+    urlRealm = 'main';
+}
 
 // Smart Server Selection
 const getAutoServerIp = () => {
@@ -211,7 +216,7 @@ if (urlRealm) {
     world.resetSeed(urlRealm);
     player.setSpawn(0, 0);
 
-    // Hide menu and connect
+    // Hide menu and connect immediately for auto-paths
     const menu = document.getElementById('main-menu');
     if (menu) menu.style.display = 'none';
     uiLayer.style.pointerEvents = 'none';
