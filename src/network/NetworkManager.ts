@@ -42,6 +42,8 @@ export class NetworkManager {
         });
     }
 
+    private heartbeatInterval: any = null;
+
     public connect(ip: string, username: string, realm: string = '') {
         this.currentRealm = realm;
         if (this.ws) {
@@ -74,11 +76,18 @@ export class NetworkManager {
                     type: 'set_username',
                     username: username
                 });
+
+                // Start heartbeat to keep Render alive
+                if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+                this.heartbeatInterval = setInterval(() => {
+                    this.send({ type: 'ping' });
+                }, 30000);
             };
 
             this.ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
+                    if (data.type === 'pong') return; // Silence heartbeat
                     this.handleMessage(data);
                 } catch (e) {
                     console.error('[Network] Error parsing message:', e);
@@ -89,7 +98,7 @@ export class NetworkManager {
                 console.log('[Network] Disconnected.');
                 this.connected = false;
                 this.entityManager.clearRemotePlayers();
-                // Optionally show UI notification
+                if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
             };
 
             this.ws.onerror = (error) => {

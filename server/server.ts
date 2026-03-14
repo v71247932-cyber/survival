@@ -147,6 +147,9 @@ function handleClientMessage(ws: WebSocket, state: PlayerState, data: any) {
                 position: data.position
             }, ws);
             break;
+        case 'ping':
+            ws.send(JSON.stringify({ type: 'pong' }));
+            break;
         default:
             console.log(`[Server] Unknown message type: ${data.type}`);
     }

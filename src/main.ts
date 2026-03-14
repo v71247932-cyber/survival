@@ -271,14 +271,21 @@ function animate() {
     // Update entities (remote players and mobs)
     entityManager.update(delta, networkManager.isHost());
 
-    // Move sun with player for simple shadow mapping
-    dirLight.position.set(camera.position.x + 50, camera.position.y + 100, camera.position.z + 50);
-    dirLight.target.position.set(camera.position.x, camera.position.y, camera.position.z);
-    dirLight.target.updateMatrixWorld();
+    // Throttled light updates (only if moved > 2 units to save battery/perf)
+    const pPos = camera.position;
+    if (!this._lastLightPos) this._lastLightPos = new THREE.Vector3().copy(pPos);
+    if (this._lastLightPos.distanceToSquared(pPos) > 4.0) {
+        dirLight.position.set(pPos.x + 50, pPos.y + 100, pPos.z + 50);
+        dirLight.target.position.set(pPos.x, pPos.y, pPos.z);
+        dirLight.target.updateMatrixWorld();
+        this._lastLightPos.copy(pPos);
+    }
 
     renderer.render(scene, camera);
 }
-animate();
+// Initialize helper for light throttling
+(animate as any)._lastLightPos = null;
+animate.call(animate);
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
