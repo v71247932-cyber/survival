@@ -8,12 +8,13 @@ export class UIManager {
 
     private initDOM() {
         this.container.innerHTML = `
-            <div id="stats" style="position: absolute; bottom: 320px; left: 50%; transform: translateX(-50%); display: flex; gap: 80px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Inter', sans-serif;">
-                <div id="healthStat" style="display: flex; align-items: center; gap: 10px; font-weight: bold; background: rgba(0,10,20,0.6); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);">Health: ❤❤❤❤❤❤</div>
-                <div id="hungerStat" style="display: flex; align-items: center; gap: 10px; font-weight: bold; background: rgba(0,10,20,0.6); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);">Hunger: 🍗🍗🍗🍗🍗</div>
-            </div>
+
             
-            <div id="persistent-hud" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: auto;">
+            <div id="persistent-hud" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: auto;">
+                <div id="stats" style="display: flex; gap: 20px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Inter', sans-serif; font-size: 13px;">
+                    <div id="healthStat" style="display: flex; align-items: center; gap: 6px; font-weight: bold; background: rgba(0,10,20,0.6); padding: 5px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);">Health: ❤❤❤❤❤❤</div>
+                    <div id="hungerStat" style="display: flex; align-items: center; gap: 6px; font-weight: bold; background: rgba(0,10,20,0.6); padding: 5px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);">Hunger: 🍗🍗🍗🍗🍗</div>
+                </div>
                 <!-- Hotbar -->
                 <div id="hotbar-container" style="display: flex; gap: 6px; padding: 6px; background: rgba(0,10,20,0.8); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                     ${Array(9).fill(0).map((_, i) => `<div class="slot hotbar-slot" id="hotbar-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);"></div>`).join('')}
