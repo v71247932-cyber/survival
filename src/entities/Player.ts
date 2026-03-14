@@ -24,7 +24,7 @@ export class Player {
     private isRunning = false;
     private isCrouching = false;
     private isBreaking = false;
-    private breakTarget: { x: number, y: number, z: number } | null = null;
+    private breakTarget: THREE.Vector3 | null = null;
     private breakProgress = 0;
     private breakTime = 0.6; // Seconds to break a block
     private miningProgressEl: HTMLElement | null = null;
@@ -247,7 +247,7 @@ export class Player {
 
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
-        const intersects = raycaster.intersectObjects(this.world.children);
+        const intersects = raycaster.intersectObjects(this.world.scene.children);
 
         if (intersects.length > 0 && intersects[0].distance < 5) {
             const intersect = intersects[0];
