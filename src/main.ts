@@ -80,11 +80,16 @@ document.addEventListener('keydown', (e) => {
     }
 
     if (e.code === 'KeyE') {
-        if (ui.toggleInventory()) {
+        const isOpening = ui.toggleInventory();
+        if (isOpening) {
             player.controls.unlock();
         } else {
             player.controls.lock();
-            if ((window as any).inventoryCtrl) (window as any).inventoryCtrl.isTableOpen = false;
+            // Closing inventory always resets 3x3 table state
+            if ((window as any).inventoryCtrl) {
+                (window as any).inventoryCtrl.isTableOpen = false;
+                (window as any).inventoryCtrl.render();
+            }
         }
     }
 
