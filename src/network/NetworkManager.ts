@@ -62,6 +62,10 @@ export class NetworkManager {
         }
         console.log(`[Network] Connecting to ${url}...`);
 
+        // Wake up Render server (cold start)
+        const httpUrl = url.replace('ws://', 'http://').replace('wss://', 'https://').split('?')[0];
+        fetch(httpUrl).catch(() => { });
+
         try {
             this.ws = new WebSocket(url);
 
