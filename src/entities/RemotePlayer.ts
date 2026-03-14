@@ -19,21 +19,53 @@ export class RemotePlayer {
         this.targetPos.set(position.x, position.y, position.z);
         this.group.position.copy(this.targetPos);
 
-        // Simple visual representation: Box for body, box for head
-        const bodyGeo = new THREE.BoxGeometry(0.6, 1.2, 0.4);
-        const headGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-        const material = new THREE.MeshLambertMaterial({ color: 0x3366cc });
+        // --- Character Skin Geometry (2 blocks high total) ---
+        const skinColor = 0xe0ac69; // Peach/Skin
+        const shirtColor = 0x3366cc; // Blue
+        const pantsColor = 0x5a3d2b; // Brown
+        const hairColor = 0x3e2723; // Dark Brown
 
-        const bodyMesh = new THREE.Mesh(bodyGeo, material);
-        bodyMesh.position.y = 0.6; // shift up
-        bodyMesh.castShadow = true;
+        // Head (0.4 x 0.4 x 0.4)
+        const headGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+        const headMat = new THREE.MeshLambertMaterial({ color: skinColor });
+        const head = new THREE.Mesh(headGeo, headMat);
+        head.position.y = 1.6; // Top of the model
+        head.castShadow = true;
 
-        const headMesh = new THREE.Mesh(headGeo, material);
-        headMesh.position.y = 1.45;
-        headMesh.castShadow = true;
+        // Torso (0.6 x 0.7 x 0.3)
+        const torsoGeo = new THREE.BoxGeometry(0.6, 0.7, 0.3);
+        const torsoMat = new THREE.MeshLambertMaterial({ color: shirtColor });
+        const torso = new THREE.Mesh(torsoGeo, torsoMat);
+        torso.position.y = 1.05; // Center of torso
+        torso.castShadow = true;
 
-        this.group.add(bodyMesh);
-        this.group.add(headMesh);
+        // Arms (0.2 x 0.7 x 0.2)
+        const armGeo = new THREE.BoxGeometry(0.2, 0.7, 0.2);
+        const leftArm = new THREE.Mesh(armGeo, torsoMat);
+        leftArm.position.set(-0.4, 1.05, 0);
+        leftArm.castShadow = true;
+
+        const rightArm = new THREE.Mesh(armGeo, torsoMat);
+        rightArm.position.set(0.4, 1.05, 0);
+        rightArm.castShadow = true;
+
+        // Legs (0.25 x 0.7 x 0.25)
+        const legGeo = new THREE.BoxGeometry(0.25, 0.7, 0.25);
+        const legMat = new THREE.MeshLambertMaterial({ color: pantsColor });
+        const leftLeg = new THREE.Mesh(legGeo, legMat);
+        leftLeg.position.set(-0.15, 0.35, 0);
+        leftLeg.castShadow = true;
+
+        const rightLeg = new THREE.Mesh(legGeo, legMat);
+        rightLeg.position.set(0.15, 0.35, 0);
+        rightLeg.castShadow = true;
+
+        this.group.add(head);
+        this.group.add(torso);
+        this.group.add(leftArm);
+        this.group.add(rightArm);
+        this.group.add(leftLeg);
+        this.group.add(rightLeg);
 
         this.createNameplate();
     }

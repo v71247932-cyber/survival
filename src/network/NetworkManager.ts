@@ -12,6 +12,7 @@ export class NetworkManager {
     private world: World;
     private entityManager: EntityManager;
     private player: Player;
+    private firstUpdate = true;
 
     private lastSentPos = new THREE.Vector3();
     private lastSentRotY = 0;
@@ -170,11 +171,10 @@ export class NetworkManager {
         const euler = new THREE.Euler().setFromQuaternion(this.player.camera.quaternion, 'YXZ');
         const rotY = euler.y;
 
-        const distSq = this.lastSentPos.distanceToSquared(pPos);
         const rotDiff = Math.abs(this.lastSentRotY - rotY);
 
-        // Send if moved more than 0.05 units or rotated more than ~1 degree
-        if (distSq > 0.05 * 0.05 || rotDiff > 0.02) {
+        // Send if moved more than 0.05 units or rotated more than ~1 degree (OR if it's the first update)
+        if (this.firstUpdate || distSq > 0.05 * 0.05 || rotDiff > 0.02) {
             this.send({
                 type: 'move',
                 position: { x: pPos.x, y: pPos.y, z: pPos.z },
@@ -182,6 +182,7 @@ export class NetworkManager {
             });
             this.lastSentPos.copy(pPos);
             this.lastSentRotY = rotY;
+            this.firstUpdate = false;
         }
 
         // Broadast mob moves if host
