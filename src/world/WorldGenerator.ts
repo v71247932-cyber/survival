@@ -90,23 +90,8 @@ export class WorldGenerator {
                             else chunk.setBlock(x, y, z, BlockType.DIRT);
                         }
                     } else {
-                        // Caves using 3D noise
-                        const caveNoise = this.noise3D(worldX * 0.05, y * 0.05, worldZ * 0.05);
-                        const largeCaveNoise = this.noise3D(worldX * 0.015, y * 0.02, worldZ * 0.015);
-
-                        if (caveNoise > 0.4 || largeCaveNoise > 0.45) {
-                            chunk.setBlock(x, y, z, BlockType.AIR);
-                        } else {
-                            // Ores
-                            const oreNoise = this.noise3D(worldX * 0.1, y * 0.1, worldZ * 0.1);
-                            if (oreNoise > 0.7) {
-                                if (y < 20 && this.prng() < 0.3) chunk.setBlock(x, y, z, BlockType.GOLD_BLOCK);
-                                else if (y < 40) chunk.setBlock(x, y, z, BlockType.IRON_BLOCK);
-                                else chunk.setBlock(x, y, z, BlockType.STONE);
-                            } else {
-                                chunk.setBlock(x, y, z, BlockType.STONE);
-                            }
-                        }
+                        // Very simplified stone/caves (no 3D noise for now to save 60k calls/frame)
+                        chunk.setBlock(x, y, z, BlockType.STONE);
                     }
                 }
 
