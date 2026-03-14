@@ -240,6 +240,14 @@ function animate() {
         if (hungerStat) {
             hungerStat.innerText = 'Hunger: ' + '🍗'.repeat(Math.ceil(player.survival.hunger / 2));
         }
+
+        // Update Coordinates
+        const coordStat = document.getElementById('coordinate-stats');
+        if (coordStat) {
+            const p = player.camera.position;
+            coordStat.innerText = `X: ${p.x.toFixed(1)}, Y: ${p.y.toFixed(1)}, Z: ${p.z.toFixed(1)}`;
+        }
+
         lastHudUpdate = currentTime;
     }
 
