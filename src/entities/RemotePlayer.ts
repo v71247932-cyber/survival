@@ -6,8 +6,6 @@ export class RemotePlayer {
     public group: THREE.Group;
 
     private usernameSprite: THREE.Sprite | null = null;
-
-    // Interpolation targets
     private targetPos = new THREE.Vector3();
     private targetRotY = 0;
 
@@ -19,74 +17,64 @@ export class RemotePlayer {
         this.targetPos.set(position.x, position.y, position.z);
         this.group.position.copy(this.targetPos);
 
-        // --- Character Skin Geometry (2 blocks high total) ---
-        const skinColor = 0xe0ac69; // Peach/Skin
-        const shirtColor = 0x3366cc; // Blue
-        const pantsColor = 0x5a3d2b; // Brown
-        const hairColor = 0x3e2723; // Dark Brown
+        const skinColor = 0xe0ac69;
+        const shirtColor = 0x3366cc;
+        const pantsColor = 0x5a3d2b;
+        const hairColor = 0x3e2723;
 
-        // Head (0.4 x 0.4 x 0.4)
+        // Optimized character model (no shadows, simple materials)
         const headGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
         const headMat = new THREE.MeshLambertMaterial({ color: skinColor });
         const head = new THREE.Mesh(headGeo, headMat);
-        head.position.y = 1.6; // Top of the model
-        head.castShadow = true;
+        head.position.y = 1.6;
 
-        // Hair (0.42 x 0.15 x 0.42) - Slightly larger to overlay head
         const hairGeo = new THREE.BoxGeometry(0.42, 0.15, 0.42);
         const hairMat = new THREE.MeshLambertMaterial({ color: hairColor });
         const hair = new THREE.Mesh(hairGeo, hairMat);
         hair.position.y = 1.75;
         this.group.add(hair);
 
-        // Torso (0.6 x 0.7 x 0.3)
         const torsoGeo = new THREE.BoxGeometry(0.6, 0.7, 0.3);
         const torsoMat = new THREE.MeshLambertMaterial({ color: shirtColor });
         const torso = new THREE.Mesh(torsoGeo, torsoMat);
-        torso.position.y = 1.05; // Center of torso
-        torso.castShadow = true;
+        torso.position.y = 1.05;
 
-        // Arms (0.2 x 0.7 x 0.2)
         const armGeo = new THREE.BoxGeometry(0.2, 0.7, 0.2);
         const leftArm = new THREE.Mesh(armGeo, torsoMat);
         leftArm.position.set(-0.4, 1.05, 0);
-        leftArm.castShadow = true;
 
         const rightArm = new THREE.Mesh(armGeo, torsoMat);
         rightArm.position.set(0.4, 1.05, 0);
-        rightArm.castShadow = true;
 
-        // Legs (0.25 x 0.7 x 0.25)
         const legGeo = new THREE.BoxGeometry(0.25, 0.7, 0.25);
         const legMat = new THREE.MeshLambertMaterial({ color: pantsColor });
         const leftLeg = new THREE.Mesh(legGeo, legMat);
         leftLeg.position.set(-0.15, 0.35, 0);
-        leftLeg.castShadow = true;
 
         const rightLeg = new THREE.Mesh(legGeo, legMat);
         rightLeg.position.set(0.15, 0.35, 0);
-        rightLeg.castShadow = true;
 
-        this.group.add(head);
-        this.group.add(torso);
-        this.group.add(leftArm);
-        this.group.add(rightArm);
-        this.group.add(leftLeg);
-        this.group.add(rightLeg);
+        // Turn off shadows for all components for max FPS
+        [head, hair, torso, leftArm, rightArm, leftLeg, rightLeg].forEach(m => {
+            m.castShadow = false;
+            m.receiveShadow = false;
+            m.matrixAutoUpdate = false;
+            m.updateMatrix();
+        });
 
+        this.group.add(head, torso, leftArm, rightArm, leftLeg, rightLeg);
         this.createNameplate();
     }
 
     private createNameplate() {
-        // Create simple text canvas
         const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 64;
+        canvas.width = 128; // Reduced resolution for perf
+        canvas.height = 32;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.font = '24px Arial';
+            ctx.font = '16px sans-serif';
             ctx.fillStyle = 'white';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -94,14 +82,12 @@ export class RemotePlayer {
         }
 
         const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
         const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
         this.usernameSprite = new THREE.Sprite(material);
-        // Make sure sprite is rendered on top
         this.usernameSprite.renderOrder = 999;
-
-        this.usernameSprite.position.y = 2.2;
-        this.usernameSprite.scale.set(1.5, 0.375, 1);
-
+        this.usernameSprite.position.y = 2.1;
+        this.usernameSprite.scale.set(1.0, 0.25, 1);
         this.group.add(this.usernameSprite);
     }
 
@@ -111,26 +97,21 @@ export class RemotePlayer {
     }
 
     public update(delta: number) {
-        // Interpolate position and rotation
-        this.group.position.lerp(this.targetPos, delta * 10.0);
-
-        // Simple rotationlerp (doesn't handle wraparound well in this simple form, but passable for prototype)
+        this.group.position.lerp(this.targetPos, delta * 15.0); // Faster interpolation
         this.group.rotation.y += (this.targetRotY - this.group.rotation.y) * delta * 10.0;
+        this.group.updateMatrixWorld();
     }
 
     public dispose() {
-        if (this.usernameSprite && this.usernameSprite.material instanceof THREE.Material) {
+        if (this.usernameSprite) {
             if (this.usernameSprite.material.map) this.usernameSprite.material.map.dispose();
             this.usernameSprite.material.dispose();
         }
-        // Iterate children to dispose geo/mats
         this.group.children.forEach(child => {
             if (child instanceof THREE.Mesh) {
-                if (child.geometry) child.geometry.dispose();
-                if (child.material) {
-                    if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-                    else child.material.dispose();
-                }
+                child.geometry.dispose();
+                if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+                else child.material.dispose();
             }
         });
     }
