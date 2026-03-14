@@ -16,11 +16,15 @@ scene.fog = new THREE.Fog(0x87CEEB, 20, 60);
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 // Setup Renderer
-const renderer = new THREE.WebGLRenderer({ antialias: false });
+const renderer = new THREE.WebGLRenderer({
+    antialias: false,
+    powerPreference: "high-performance",
+    precision: "lowp" // Speed up fragment shaders for pixelated art
+});
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Capped at 1.5 for better perf on high-DPI
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.BasicShadowMap; // Much faster than PCFSoft
 document.getElementById('app')!.appendChild(renderer.domElement);
 
 // Lighting
@@ -30,12 +34,12 @@ scene.add(ambientLight);
 const dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
 dirLight.position.set(100, 200, 50);
 dirLight.castShadow = true;
-dirLight.shadow.camera.left = -50;
-dirLight.shadow.camera.right = 50;
-dirLight.shadow.camera.top = 50;
-dirLight.shadow.camera.bottom = -50;
-dirLight.shadow.mapSize.width = 2048;
-dirLight.shadow.mapSize.height = 2048;
+dirLight.shadow.camera.left = -40; // Tighten shadow camera for better resolution at lower map size
+dirLight.shadow.camera.right = 40;
+dirLight.shadow.camera.top = 40;
+dirLight.shadow.camera.bottom = -40;
+dirLight.shadow.mapSize.width = 512; // Lower from 2048 to 512 for huge FPS gain
+dirLight.shadow.mapSize.height = 512;
 scene.add(dirLight);
 
 // World
@@ -176,23 +180,41 @@ const networkManager = new NetworkManager(world, entityManager, player);
 
 // Main Loop
 const clock = new THREE.Clock();
+let frameCount = 0;
+let lastTime = performance.now();
+const fpsElement = document.getElementById('performance-stats');
+let lastHudUpdate = 0;
 
 function animate() {
     requestAnimationFrame(animate);
 
+    const currentTime = performance.now();
+    frameCount++;
+
+    // Update FPS counter every 500ms
+    if (currentTime - lastTime >= 500) {
+        if (fpsElement) {
+            fpsElement.innerText = `FPS: ${Math.round((frameCount * 1000) / (currentTime - lastTime))}`;
+        }
+        lastTime = currentTime;
+        frameCount = 0;
+    }
+
     let delta = clock.getDelta();
     if (delta > 0.1) delta = 0.1; // clamp delta to prevent huge jumps
 
-    // Survival Update
-    player.survival.update(delta);
-
-    const healthStat = document.getElementById('healthStat');
-    if (healthStat) {
-        healthStat.innerText = 'Health: ' + '❤'.repeat(Math.ceil(player.survival.health / 2)) + (player.survival.health % 2 !== 0 && player.survival.health > 0 ? '♥' : '');
-    }
-    const hungerStat = document.getElementById('hungerStat');
-    if (hungerStat) {
-        hungerStat.innerText = 'Hunger: ' + '🍗'.repeat(Math.ceil(player.survival.hunger / 2));
+    // Throttled HUD Update (every 100ms instead of every frame)
+    if (currentTime - lastHudUpdate > 100) {
+        player.survival.update(delta); // Survival logic update remains frame-rate independent but HUD throttled
+        const healthStat = document.getElementById('healthStat');
+        if (healthStat) {
+            healthStat.innerText = 'Health: ' + '❤'.repeat(Math.ceil(player.survival.health / 2)) + (player.survival.health % 2 !== 0 && player.survival.health > 0 ? '♥' : '');
+        }
+        const hungerStat = document.getElementById('hungerStat');
+        if (hungerStat) {
+            hungerStat.innerText = 'Hunger: ' + '🍗'.repeat(Math.ceil(player.survival.hunger / 2));
+        }
+        lastHudUpdate = currentTime;
     }
 
     // Update player & physics

@@ -33,6 +33,8 @@ export class Chunk {
         this.mesh.position.set(dx * CHUNK_WIDTH, 0, dz * CHUNK_WIDTH);
         this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
+        this.mesh.matrixAutoUpdate = false;
+        this.mesh.updateMatrix();
     }
 
     public getBlock(x: number, y: number, z: number): BlockType {
