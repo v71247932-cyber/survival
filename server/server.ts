@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import http from 'http';
 
+const port = process.env.PORT || 8080;
 const server = http.createServer((req, res) => {
     // Set CORS headers for all requests
     res.setHeader('Access-Control-Allow-Origin', '*');
