@@ -268,6 +268,9 @@ function animate() {
     // Update network
     networkManager.update();
 
+    // Update entities (remote players and mobs)
+    entityManager.update(delta, networkManager.isHost());
+
     // Move sun with player for simple shadow mapping
     dirLight.position.set(camera.position.x + 50, camera.position.y + 100, camera.position.z + 50);
     dirLight.target.position.set(camera.position.x, camera.position.y, camera.position.z);
