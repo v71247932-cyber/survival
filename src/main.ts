@@ -123,7 +123,12 @@ document.addEventListener('keyup', (e) => {
 
 function updatePlayerListUI() {
     const listContent = document.getElementById('player-list-content');
+    const realmLabel = document.getElementById('player-list-realm');
     if (!listContent) return;
+
+    if (realmLabel) {
+        realmLabel.innerText = `REALM: ${networkManager.currentRealm || 'OFFLINE'}`;
+    }
 
     listContent.innerHTML = '';
 
@@ -133,9 +138,9 @@ function updatePlayerListUI() {
     listContent.innerHTML += `<div class="player-list-item"><span style="color: #55ff55">${localName} (You)</span><span>0ms</span></div>`;
 
     // Add remote players
-    const entities = (entityManager as any).remotePlayers as Map<string, any>;
-    if (entities) {
-        for (const [_, rp] of entities.entries()) {
+    const remotePlayers = (entityManager as any).remotePlayers as Map<string, any>;
+    if (remotePlayers) {
+        for (const [_, rp] of remotePlayers.entries()) {
             listContent.innerHTML += `<div class="player-list-item"><span>${rp.username}</span><span>~ms</span></div>`;
         }
     }

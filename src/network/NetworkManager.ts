@@ -7,6 +7,7 @@ export class NetworkManager {
     public ws: WebSocket | null = null;
     public localPlayerId: string = '';
     public connected: boolean = false;
+    public currentRealm: string = '';
 
     private world: World;
     private entityManager: EntityManager;
@@ -41,6 +42,7 @@ export class NetworkManager {
     }
 
     public connect(ip: string, username: string, realm: string = '') {
+        this.currentRealm = realm;
         if (this.ws) {
             this.ws.close();
         }

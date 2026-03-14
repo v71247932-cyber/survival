@@ -62,6 +62,16 @@ export class UIManager {
             </div>
 
             <div id="floating-item" style="position: fixed; pointer-events: none; z-index: 2000; width: 46px; height: 46px; display: none; justify-content: center; align-items: center;"></div>
+
+            <div id="player-list-container" style="display: none; position: absolute; top: 100px; left: 50%; transform: translateX(-50%); background: rgba(10, 20, 30, 0.85); backdrop-filter: blur(15px); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 20px; width: 350px; z-index: 1005; pointer-events: none; box-shadow: 0 20px 50px rgba(0,0,0,0.6); font-family: 'Inter', sans-serif;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    <div style="font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 0.5px;">PLAYERS</div>
+                    <div id="player-list-realm" style="font-size: 11px; font-weight: 600; color: #55ff55; background: rgba(85, 255, 85, 0.1); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(85, 255, 85, 0.2);">REALM: NONE</div>
+                </div>
+                <div id="player-list-content" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Players added here -->
+                </div>
+            </div>
         `;
 
         // Add minimal CSS for slot contents
@@ -91,6 +101,23 @@ export class UIManager {
                 width: 40px;
                 height: 40px;
                 filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+            }
+            .player-list-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 14px;
+                background: rgba(255,255,255,0.03);
+                border-radius: 10px;
+                border: 1px solid rgba(255,255,255,0.05);
+                font-size: 14px;
+                font-weight: 500;
+                color: rgba(255,255,255,0.9);
+            }
+            .player-list-item span:last-child {
+                font-family: monospace;
+                font-size: 12px;
+                color: rgba(255,255,255,0.4);
             }
         `;
         document.head.appendChild(style);
