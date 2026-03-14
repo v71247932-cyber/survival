@@ -25,33 +25,33 @@ export class Mob {
         const material = new THREE.MeshLambertMaterial({ color: isHostile ? 0xff0000 : 0x00ff00 });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.copy(position);
-        this.mesh.castShadow = true;
-        this.mesh.receiveShadow = true;
+
+        // Performance: Shadows OFF
+        this.mesh.castShadow = false;
+        this.mesh.receiveShadow = false;
+        this.mesh.matrixAutoUpdate = false;
+        this.mesh.updateMatrix();
     }
 
     public update(delta: number) {
+        // Fix: Ensure gravity doesn't over-accumulate
         this.velocity.y -= this.gravity * delta;
+        if (this.velocity.y < -50) this.velocity.y = -50; // Terminal velocity
 
         let dx = 0;
         let dz = 0;
 
         if (this.isHostile && this.targetPlayer && this.mesh.position.distanceTo(this.targetPlayer.camera.position) < 15) {
-            // Chase player
             const dir = this.targetPlayer.camera.position.clone().sub(this.mesh.position).setY(0).normalize();
             dx = dir.x;
             dz = dir.z;
         } else {
-            // Wander
             this.nextWanderTime -= delta;
             if (this.nextWanderTime <= 0) {
                 this.nextWanderTime = 2 + Math.random() * 4;
-                if (Math.random() < 0.5) {
-                    this.targetWanderAngle = Math.random() * Math.PI * 2;
-                } else {
-                    this.targetWanderAngle = -1; // stop
-                }
+                if (Math.random() < 0.5) this.targetWanderAngle = Math.random() * Math.PI * 2;
+                else this.targetWanderAngle = -1;
             }
-
             if (this.targetWanderAngle !== -1) {
                 dx = Math.sin(this.targetWanderAngle);
                 dz = Math.cos(this.targetWanderAngle);
@@ -62,22 +62,22 @@ export class Mob {
         this.velocity.z = dz * this.speed;
 
         this.mesh.position.x += this.velocity.x * delta;
-        // Collision (simplified AABB check)
         this.mesh.position.y += this.velocity.y * delta;
 
-        if (this.mesh.position.y < 0) this.mesh.position.y = 100; // Reset if fallen out
-
-        // Simple floor clamping based on block below
+        // Simple floor clamping
         const bx = Math.floor(this.mesh.position.x);
         const by = Math.floor(this.mesh.position.y - 0.9);
         const bz = Math.floor(this.mesh.position.z);
 
-        if (this.world.getBlock(bx, by, bz) !== 0) { // Not air
+        if (this.world.getBlock(bx, by, bz) !== 0) {
             this.velocity.y = 0;
             this.mesh.position.y = by + 1 + 0.9;
         }
 
+        if (this.mesh.position.y < -10) this.mesh.position.y = 100; // Reset if fallen
+
         this.mesh.position.z += this.velocity.z * delta;
+        this.mesh.updateMatrix(); // Manual update for performance
     }
 }
 
@@ -95,8 +95,8 @@ export class EntityManager {
     }
 
     public update(delta: number, isHost: boolean) {
-        // Only spawn mobs if in singleplayer or if this client is the "host"
-        if (isHost && Math.random() < 0.005 && this.mobs.length < 5) {
+        // Throttled spawning
+        if (isHost && Math.random() < 0.002 && this.mobs.length < 5) {
             this.spawnMob();
         }
 
@@ -109,15 +109,8 @@ export class EntityManager {
         }
     }
 
-    public getMobs() {
-        return this.mobs;
-    }
-
-    public getRemotePlayerIds(): string[] {
-        return Array.from(this.remotePlayers.keys());
-    }
-
-    // --- Remote Players ---
+    public getMobs() { return this.mobs; }
+    public getRemotePlayerIds() { return Array.from(this.remotePlayers.keys()); }
 
     public addRemotePlayer(id: string, username: string, pos: { x: number, y: number, z: number }) {
         if (!this.remotePlayers.has(id)) {
@@ -129,9 +122,7 @@ export class EntityManager {
 
     public updateRemotePlayer(id: string, pos: { x: number, y: number, z: number }, rot: { y: number }) {
         const rp = this.remotePlayers.get(id);
-        if (rp) {
-            rp.setTarget(pos, rot);
-        }
+        if (rp) rp.setTarget(pos, rot);
     }
 
     public removeRemotePlayer(id: string) {
@@ -149,20 +140,14 @@ export class EntityManager {
             rp.dispose();
         }
         this.remotePlayers.clear();
-
-        // Also clear mobs if we are joining a server (mobs should come from host)
         for (const mob of this.mobs) {
             this.scene.remove(mob.mesh);
         }
         this.mobs = [];
     }
 
-    // --- Networked Mobs ---
-
     public addNetworkMob(id: string, isHostile: boolean, pos: { x: number, y: number, z: number }) {
-        // Check if mob already exists
         if (this.mobs.some(m => (m as any).id === id)) return;
-
         const mob = new Mob(this.world, new THREE.Vector3(pos.x, pos.y, pos.z), isHostile, this.player);
         (mob as any).id = id;
         this.scene.add(mob.mesh);
@@ -173,30 +158,26 @@ export class EntityManager {
         const mob = this.mobs.find(m => (m as any).id === id);
         if (mob) {
             mob.mesh.position.set(pos.x, pos.y, pos.z);
+            mob.mesh.updateMatrix();
         }
     }
 
     private spawnMob() {
         const px = this.player.camera.position.x;
         const pz = this.player.camera.position.z;
-
         const angle = Math.random() * Math.PI * 2;
         const dist = 10 + Math.random() * 10;
-
         const sx = px + Math.cos(angle) * dist;
         const sz = pz + Math.sin(angle) * dist;
-        const sy = this.player.camera.position.y + 10; // Drop from above
+        const sy = 100;
 
-        const isHostile = Math.random() < 0.3; // 30% hostile
+        const isHostile = Math.random() < 0.3;
         const mob = new Mob(this.world, new THREE.Vector3(sx, sy, sz), isHostile, this.player);
-
-        // Generate a simple unique ID for the mob
         (mob as any).id = `mob_${Math.random().toString(36).substr(2, 9)}`;
 
         this.scene.add(mob.mesh);
         this.mobs.push(mob);
 
-        // Notify network
         const event = new CustomEvent('local_mob_spawn', { detail: mob });
         window.dispatchEvent(event);
     }
