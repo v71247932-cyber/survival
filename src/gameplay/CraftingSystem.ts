@@ -104,6 +104,22 @@ export const Recipes: CraftingRecipe[] = [
     {
         pattern: [[ItemID.IRON_INGOT], [ItemID.IRON_INGOT], [ItemID.STICK]],
         result: { item: ItemID.IRON_SWORD, count: 1 }
+    },
+    {
+        pattern: [[ItemID.IRON_INGOT], [ItemID.IRON_INGOT], [ItemID.IRON_INGOT]],
+        result: { item: ItemID.IRON_BLOCK, count: 1 }
+    },
+    {
+        pattern: [[ItemID.IRON_BLOCK]],
+        result: { item: ItemID.IRON_INGOT, count: 9 }
+    },
+    {
+        pattern: [[ItemID.GOLD_INGOT], [ItemID.GOLD_INGOT], [ItemID.GOLD_INGOT]],
+        result: { item: ItemID.GOLD_BLOCK, count: 1 }
+    },
+    {
+        pattern: [[ItemID.GOLD_BLOCK]],
+        result: { item: ItemID.GOLD_INGOT, count: 9 }
     }
 ];
 
