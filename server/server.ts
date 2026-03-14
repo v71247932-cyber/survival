@@ -1,10 +1,20 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import http from 'http';
 
-const port = process.env.PORT || 8080;
 const server = http.createServer((req, res) => {
+    // Set CORS headers for all requests
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-requested-with');
+
+    // Handle Preflight OPTIONS
+    if (req.method === 'OPTIONS') {
+        res.statusCode = 204;
+        res.end();
+        return;
+    }
+
+    res.statusCode = 200;
     res.end('Server is running');
 });
 const wss = new WebSocketServer({ server });

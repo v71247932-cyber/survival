@@ -31,6 +31,8 @@ export class World {
         this.chunks.clear();
     }
 
+    private loadQueue: { x: number, z: number }[] = [];
+
     public update(playerPos: THREE.Vector3) {
         const pChunkX = Math.floor(playerPos.x / CHUNK_WIDTH);
         const pChunkZ = Math.floor(playerPos.z / CHUNK_WIDTH);
@@ -46,10 +48,16 @@ export class World {
                 const key = `${cx},${cz}`;
                 chunksInRadius.add(key);
 
-                if (!this.chunks.has(key)) {
-                    this.loadChunk(cx, cz);
+                if (!this.chunks.has(key) && !this.loadQueue.some(q => q.x === cx && q.z === cz)) {
+                    this.loadQueue.push({ x: cx, z: cz });
                 }
             }
+        }
+
+        // Process only 1 chunk per frame to maintain high FPS
+        if (this.loadQueue.length > 0) {
+            const next = this.loadQueue.shift()!;
+            this.loadChunk(next.x, next.z);
         }
 
         for (const [key, chunk] of this.chunks.entries()) {

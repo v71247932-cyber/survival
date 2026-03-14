@@ -55,7 +55,7 @@ export class NetworkManager {
             protocol = '';
         }
 
-        let url = `${protocol}${ip}`;
+        let url = `${protocol}${ip}${ip.endsWith('/') ? '' : '/'}`;
         if (realm) {
             const separator = url.includes('?') ? '&' : '?';
             url += `${separator}realm=${encodeURIComponent(realm)}`;
