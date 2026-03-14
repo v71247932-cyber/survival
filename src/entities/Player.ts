@@ -51,6 +51,10 @@ export class Player {
 
         domElement.addEventListener('mousedown', (e) => {
             if (!this.controls.isLocked) {
+                // DON'T lock if inventory is open
+                const inv = document.getElementById('inventory-screen');
+                if (inv && inv.style.display !== 'none') return;
+
                 this.controls.lock();
             } else {
                 if (e.button === 0) {
