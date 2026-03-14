@@ -245,7 +245,7 @@ export class Player {
             const blockZ = Math.floor(pos.z);
             const targetBlock = this.world.getBlock(blockX, blockY, blockZ);
 
-            if (targetBlock === BlockType.AIR || targetBlock === BlockType.BEDROCK) {
+            if (targetBlock === BlockType.AIR || targetBlock === BlockType.BEDROCK || targetBlock === BlockType.WATER) {
                 this.resetMining();
                 return;
             }
@@ -345,7 +345,10 @@ export class Player {
             const bz = Math.floor(p.z + d.z * i);
 
             const b = this.world.getBlock(bx, by, bz);
-            if (b !== BlockType.AIR && b !== BlockType.WATER) {
+            if (b !== BlockType.AIR) {
+                // Cannot place inside water if we aren't displacing it?
+                // Actually Minecraft allows placing blocks IN water.
+
                 // Special interaction: Crafting Table
                 if (b === BlockType.CRAFTING_TABLE) {
                     if ((window as any).inventoryCtrl) {
@@ -353,6 +356,18 @@ export class Player {
                         invCtrl.isTableOpen = true;
                         invCtrl.render();
                         window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE' }));
+                    }
+                    return;
+                }
+
+                // If we hit water, we can either place ON it or displace it.
+                // Request said: "apa sa dispara daca dai click drepta cu un block pe ea"
+                if (b === BlockType.WATER) {
+                    const selected = this.inventory.getSelectedSlot();
+                    const blockToPlace = getBlockTypeFromItem(selected.item);
+                    if (blockToPlace !== BlockType.AIR) {
+                        this.world.setBlock(bx, by, bz, blockToPlace);
+                        this.inventory.consumeSelectedSlot();
                     }
                     return;
                 }

@@ -203,6 +203,12 @@ export class InventoryController {
         }
     }
 
+    public showItemNameForSlot(itemId: number) {
+        if (itemId === 0) return;
+        const name = (window as any).getItemName ? (window as any).getItemName(itemId) : `Item ${itemId}`;
+        this.ui.showItemName(name);
+    }
+
     public render() {
         // Hotbar
         for (let i = 0; i < 9; i++) {

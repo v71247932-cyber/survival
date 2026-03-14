@@ -202,15 +202,6 @@ function animate() {
     // We can rely on controls.isLocked for this
     player.update(delta);
 
-    // Update entities
-    entityManager.update(delta, networkManager.isHost());
-
-    // Update network
-    networkManager.update();
-
-    // Update chunks
-    world.update(camera.position);
-
     // Move sun with player for simple shadow mapping
     dirLight.position.set(camera.position.x + 50, camera.position.y + 100, camera.position.z + 50);
     dirLight.target.position.set(camera.position.x, camera.position.y, camera.position.z);

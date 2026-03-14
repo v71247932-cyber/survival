@@ -57,8 +57,47 @@ export interface InventorySlot {
     durability?: number;
 }
 
+const itemNames: Record<number, string> = {
+    [ItemID.GRASS_BLOCK]: 'Grass Block',
+    [ItemID.DIRT_BLOCK]: 'Dirt',
+    [ItemID.STONE_BLOCK]: 'Stone',
+    [ItemID.WOOD_BLOCK]: 'Oak Log',
+    [ItemID.LEAVES_BLOCK]: 'Leaves',
+    [ItemID.SAND_BLOCK]: 'Sand',
+    [ItemID.COBBLESTONE_BLOCK]: 'Cobblestone',
+    [ItemID.WOOD_PLANKS_BLOCK]: 'Wooden Planks',
+    [ItemID.GRAVEL_BLOCK]: 'Gravel',
+    [ItemID.BRICKS_BLOCK]: 'Bricks',
+    [ItemID.SANDSTONE_BLOCK]: 'Sandstone',
+    [ItemID.GOLD_BLOCK]: 'Block of Gold',
+    [ItemID.BEDROCK_BLOCK]: 'Bedrock',
+    [ItemID.IRON_BLOCK]: 'Block of Iron',
+    [ItemID.STICK]: 'Stick',
+    [ItemID.IRON_INGOT]: 'Iron Ingot',
+    [ItemID.GOLD_INGOT]: 'Gold Ingot',
+    [ItemID.WOODEN_PICKAXE]: 'Wooden Pickaxe',
+    [ItemID.STONE_PICKAXE]: 'Stone Pickaxe',
+    [ItemID.IRON_PICKAXE]: 'Iron Pickaxe',
+    [ItemID.GOLD_PICKAXE]: 'Gold Pickaxe',
+    [ItemID.WOODEN_AXE]: 'Wooden Axe',
+    [ItemID.STONE_AXE]: 'Stone Axe',
+    [ItemID.IRON_AXE]: 'Iron Axe',
+    [ItemID.GOLD_AXE]: 'Gold Axe',
+    [ItemID.WOODEN_SHOVEL]: 'Wooden Shovel',
+    [ItemID.STONE_SHOVEL]: 'Stone Shovel',
+    [ItemID.IRON_SHOVEL]: 'Iron Shovel',
+    [ItemID.GOLD_SHOVEL]: 'Gold Shovel',
+    [ItemID.WOODEN_SWORD]: 'Wooden Sword',
+    [ItemID.STONE_SWORD]: 'Stone Sword',
+    [ItemID.IRON_SWORD]: 'Iron Sword',
+    [ItemID.GOLD_SWORD]: 'Gold Sword',
+    [ItemID.CRAFTING_TABLE]: 'Crafting Table',
+    [ItemID.BED]: 'Bed',
+    [ItemID.WOOL]: 'Wool'
+};
+
 export function getItemName(id: ItemID): string {
-    return ItemID[id] || 'Unknown';
+    return itemNames[id] || 'Unknown Item';
 }
 
 export function isBlockItem(id: ItemID): boolean {

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 
 // Procedurally generate simple retro pixel art textures
-export function generateTexture(pattern: 'noise' | 'grass-side' | 'wood-top', colorStr: string, noiseIntensity = 15, isLeaves = false): THREE.Texture {
+// Procedurally generate simple retro pixel art textures with high detail
+export function generateTexture(pattern: 'noise' | 'grass-side' | 'wood-top' | 'cobblestone' | 'planks', colorStr: string, noiseIntensity = 15, isLeaves = false): THREE.Texture {
     const canvas = document.createElement('canvas');
     canvas.width = 16;
     canvas.height = 16;
@@ -10,7 +11,7 @@ export function generateTexture(pattern: 'noise' | 'grass-side' | 'wood-top', co
     ctx.fillStyle = colorStr;
     ctx.fillRect(0, 0, 16, 16);
 
-    // Add noise to simulate pixel art
+    // Add multiple noise layers for shading
     for (let x = 0; x < 16; x++) {
         for (let y = 0; y < 16; y++) {
             if (isLeaves && Math.random() < 0.25) {
@@ -25,23 +26,40 @@ export function generateTexture(pattern: 'noise' | 'grass-side' | 'wood-top', co
         }
     }
 
+    // Bevel effect / Borders
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillRect(0, 0, 16, 1); ctx.fillRect(0, 0, 1, 16);
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(0, 15, 16, 1); ctx.fillRect(15, 0, 1, 16);
+
     if (pattern === 'grass-side') {
-        // Draw some green on the top edge
         ctx.fillStyle = '#4C8A36';
         for (let x = 0; x < 16; x++) {
             const depth = 2 + Math.floor(Math.random() * 3);
             ctx.fillRect(x, 0, 1, depth);
+            // Detail blades
+            if (Math.random() > 0.5) {
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                ctx.fillRect(x, depth - 1, 1, 1);
+            }
+            ctx.fillStyle = '#4C8A36';
         }
     } else if (pattern === 'wood-top') {
-        // Draw rings
         ctx.strokeStyle = '#ce9e64';
         ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(8, 8, 3, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(8, 8, 6, 0, Math.PI * 2);
-        ctx.stroke();
+        for (let r = 2; r < 8; r += 2) {
+            ctx.beginPath();
+            ctx.arc(8, 8, r, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    } else if (pattern === 'cobblestone') {
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(0, 7, 16, 1); ctx.fillRect(7, 0, 1, 16);
+        ctx.fillRect(0, 15, 16, 1); ctx.fillRect(15, 0, 1, 16);
+    } else if (pattern === 'planks') {
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(0, 7, 16, 1); ctx.fillRect(0, 15, 16, 1);
+        ctx.fillRect(7, 0, 1, 8); ctx.fillRect(12, 8, 1, 8);
     }
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -74,15 +92,15 @@ export function createBlockMaterials(): THREE.Material[] {
 
         new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // 10: Glass
 
-        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#5b5b5b', 20) }), // 11: Cobblestone
-        new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#a07c4e', 10) }), // 12: Wood Planks
+        new THREE.MeshLambertMaterial({ map: generateTexture('cobblestone', '#777', 30) }), // 11: Cobblestone
+        new THREE.MeshLambertMaterial({ map: generateTexture('planks', '#a07c4e', 15) }), // 12: Wood Planks
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#827f7a', 25) }), // 13: Gravel
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#9b3c3c', 15) }), // 14: Bricks
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#D9C985', 10) }), // 15: Sandstone
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#FFD700', 30) }), // 16: Gold Block
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#202020', 40) }), // 17: Bedrock
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#E8E8E8', 10) }), // 18: Iron Block
-        new THREE.MeshLambertMaterial({ map: generateTexture('wood-top', '#8f683f', 15) }), // 19: CT Top (reuse rings but darker)
+        new THREE.MeshLambertMaterial({ map: generateTexture('wood-top', '#8f683f', 15) }), // 19: CT Top
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#8a6642', 20) }),  // 20: CT Side
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#cc3333', 15) }),  // 21: Bed (Red)
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#ffffff', 5) })   // 22: Wool

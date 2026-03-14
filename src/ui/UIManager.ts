@@ -1,5 +1,6 @@
 export class UIManager {
     private container: HTMLElement;
+    private static namePopupTimeout: number | null = null;
 
     constructor(container: HTMLElement) {
         this.container = container;
@@ -15,7 +16,10 @@ export class UIManager {
                     <div id="healthStat" style="display: flex; align-items: center; gap: 6px; font-weight: bold; background: rgba(0,10,20,0.6); padding: 5px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);">Health: ❤❤❤❤❤❤</div>
                     <div id="hungerStat" style="display: flex; align-items: center; gap: 6px; font-weight: bold; background: rgba(0,10,20,0.6); padding: 5px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);">Hunger: 🍗🍗🍗🍗🍗</div>
                 </div>
-                <!-- Hotbar -->
+                <!-- Item Name Popup -->
+                <div id="item-name-popup" style="position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; z-index: 1002;">Dirt</div>
+
+                <!-- Stats HUD -->
                 <div id="hotbar-container" style="display: flex; gap: 6px; padding: 6px; background: rgba(0,10,20,0.8); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                     ${Array(9).fill(0).map((_, i) => `<div class="slot hotbar-slot" id="hotbar-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);"></div>`).join('')}
                 </div>
@@ -115,6 +119,20 @@ export class UIManager {
         }
     }
 
+    public showItemName(name: string) {
+        const popup = document.getElementById('item-name-popup');
+        if (!popup) return;
+
+        popup.innerText = name;
+        popup.style.opacity = '1';
+        popup.style.transform = 'translateX(-50%) translateY(0)';
+
+        if (UIManager.namePopupTimeout) clearTimeout(UIManager.namePopupTimeout);
+        UIManager.namePopupTimeout = window.setTimeout(() => {
+            popup.style.opacity = '0';
+            popup.style.transform = 'translateX(-50%) translateY(10px)';
+        }, 2000);
+    }
     public updateHotbarSelection(index: number) {
         for (let i = 0; i < 9; i++) {
             const el = document.getElementById(`hotbar-${i}`);
@@ -155,49 +173,77 @@ export class UIManager {
             ctx.fillStyle = color;
             ctx.fillRect(0, 0, 16, 16);
             const alpha = intensity / 255;
-            for (let i = 0; i < 64; i++) {
+            for (let i = 0; i < 80; i++) {
                 const x = Math.floor(Math.random() * 16);
                 const y = Math.floor(Math.random() * 16);
                 const dark = Math.random() > 0.5;
                 ctx.fillStyle = dark ? `rgba(0,0,0,${alpha})` : `rgba(255,255,255,${alpha})`;
                 ctx.fillRect(x, y, 1, 1);
             }
+            // Bevel effect
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            ctx.fillRect(0, 0, 16, 1); ctx.fillRect(0, 0, 1, 16);
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.fillRect(0, 15, 16, 1); ctx.fillRect(15, 0, 1, 16);
         };
 
         // Render based on ID
         switch (id) {
-            case 1: drawNoise('#4C8A36'); break; // Grass
-            case 2: drawNoise('#63452C'); break; // Dirt
-            case 3: drawNoise('#7D7D7D'); break; // Stone
-            case 4: drawNoise('#8f683f'); break; // Wood
-            case 6: drawNoise('#DCCC8B'); break; // Sand
-            case 9: drawNoise('#5b5b5b'); break; // Cobblestone
-            case 10: drawNoise('#a07c4e'); break; // Planks
-            case 14: drawNoise('#FFD700'); break; // Gold
-            case 16: drawNoise('#E8E8E8'); break; // Iron
-            case 17: // Crafting Table
-                drawNoise('#8a6642');
+            case 1: // Grass
+                drawNoise('#4C8A36', 30);
+                ctx.fillStyle = '#63452C'; ctx.fillRect(0, 12, 16, 4); // Dirt bottom
+                for (let i = 0; i < 16; i++) { if (Math.random() > 0.5) drawPixel(i, 11, '#4C8A36'); }
+                break;
+            case 2: drawNoise('#63452C', 40); break; // Dirt
+            case 3: drawNoise('#7D7D7D', 30); break; // Stone
+            case 4: // Wood
+                drawNoise('#8f683f', 20);
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(4, 0, 1, 16); ctx.fillRect(11, 0, 1, 16);
+                break;
+            case 6: drawNoise('#DCCC8B', 15); break; // Sand
+            case 9: // Cobblestone
+                drawNoise('#777', 40);
                 ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                ctx.fillRect(2, 2, 12, 1);
-                ctx.fillRect(2, 2, 1, 12);
+                for (let i = 0; i < 10; i++) drawPixel(Math.random() * 16, Math.random() * 16, 'rgba(0,0,0,0.3)');
+                break;
+            case 10: // Planks
+                drawNoise('#a07c4e', 15);
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(0, 7, 16, 1); ctx.fillRect(0, 15, 16, 1);
+                ctx.fillRect(7, 0, 1, 8); ctx.fillRect(12, 8, 1, 8);
+                break;
+            case 14: drawNoise('#FFD700', 50); break; // Gold
+            case 16: drawNoise('#E8E8E8', 20); break; // Iron
+            case 17: // Crafting Table
+                drawNoise('#8a6642', 20);
+                ctx.fillStyle = '#4a3321'; ctx.fillRect(0, 0, 16, 2); // Top
+                ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(2, 4, 3, 3); // Tools detail
                 break;
             case 18: // Bed
-                ctx.fillStyle = '#cc3333'; ctx.fillRect(2, 4, 12, 6);
-                ctx.fillStyle = '#ffffff'; ctx.fillRect(2, 2, 12, 2);
+                ctx.fillStyle = '#cc3333'; ctx.fillRect(1, 6, 14, 8); // Blanket
+                ctx.fillStyle = '#eee'; ctx.fillRect(1, 2, 14, 4); // Pillow
+                ctx.fillStyle = '#5d4037'; ctx.fillRect(1, 13, 2, 2); ctx.fillRect(13, 13, 2, 2); // Legs
                 break;
-            case 19: drawNoise('#ffffff', 5); break; // Wool
+            case 19: drawNoise('#ffffff', 10); break; // Wool
             case 50: // Stick
-                ctx.fillStyle = '#8f683f';
-                for (let i = 0; i < 10; i++) drawPixel(3 + i, 12 - i, '#8f683f');
+                ctx.fillStyle = '#6d4c2a';
+                for (let i = 0; i < 12; i++) {
+                    drawPixel(2 + i, 13 - i, '#6d4c2a');
+                    if (i % 3 == 0) drawPixel(2 + i, 12 - i, '#8a6642');
+                }
                 break;
             case 51: // Iron Ingot
                 ctx.fillStyle = '#E8E8E8';
-                ctx.fillRect(4, 4, 8, 8);
-                ctx.fillStyle = '#bbb'; drawPixel(4, 4, '#bbb'); drawPixel(11, 11, '#bbb');
+                ctx.fillRect(4, 5, 8, 5);
+                ctx.fillStyle = '#fff'; ctx.fillRect(5, 6, 6, 1);
+                ctx.fillStyle = '#999'; ctx.fillRect(5, 9, 6, 1);
                 break;
             case 52: // Gold Ingot
                 ctx.fillStyle = '#FFD700';
-                ctx.fillRect(4, 4, 8, 8);
+                ctx.fillRect(4, 5, 8, 5);
+                ctx.fillStyle = '#ffff00'; ctx.fillRect(5, 6, 6, 1);
+                ctx.fillStyle = '#b8860b'; ctx.fillRect(5, 9, 6, 1);
                 break;
         }
 
@@ -206,6 +252,7 @@ export class UIManager {
             const matId = id % 10;
             const colors = ['#8f683f', '#aaa', '#eee', '#ffd700'];
             const headColor = colors[matId];
+            const darkColor = ['#5d4037', '#777', '#999', '#b8860b'][matId];
 
             // Stick
             ctx.fillStyle = '#6d4c2a';
@@ -216,17 +263,21 @@ export class UIManager {
                 ctx.fillRect(3, 2, 10, 2);
                 ctx.fillRect(2, 3, 2, 3);
                 ctx.fillRect(12, 3, 2, 3);
+                ctx.fillStyle = darkColor; drawPixel(8, 3, darkColor);
             } else if (id >= 110 && id < 120) { // Axe
                 ctx.fillStyle = headColor;
                 ctx.fillRect(8, 2, 4, 5);
                 ctx.fillRect(7, 3, 1, 3);
+                ctx.fillStyle = darkColor; drawPixel(9, 3, darkColor);
             } else if (id >= 120 && id < 130) { // Shovel
                 ctx.fillStyle = headColor;
-                ctx.fillRect(11, 2, 3, 3);
+                ctx.fillRect(10, 1, 4, 4);
+                ctx.fillStyle = darkColor; drawPixel(11, 2, darkColor);
             } else if (id >= 130 && id < 140) { // Sword
                 ctx.fillStyle = headColor;
                 for (let i = 0; i < 10; i++) drawPixel(5 + i, 10 - i, headColor);
-                drawPixel(4, 11, headColor); drawPixel(5, 12, headColor); // Guard
+                ctx.fillStyle = darkColor; drawPixel(4, 11, darkColor); drawPixel(5, 12, darkColor);
+                ctx.fillStyle = '#4a3321'; drawPixel(2, 13, '#4a3321'); // Hilt
             }
         }
 
