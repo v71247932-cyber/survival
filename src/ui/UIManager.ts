@@ -117,7 +117,7 @@ export class UIManager {
 
     public updateHotbarSelection(index: number) {
         for (let i = 0; i < 9; i++) {
-            const el = document.getElementById(`hotbar - ${i} `);
+            const el = document.getElementById(`hotbar-${i}`);
             if (el) {
                 if (i === index) el.classList.add('selected');
                 else el.classList.remove('selected');
