@@ -353,9 +353,7 @@ export class Player {
                 if (b === BlockType.CRAFTING_TABLE) {
                     if ((window as any).inventoryCtrl) {
                         const invCtrl = (window as any).inventoryCtrl;
-                        invCtrl.isTableOpen = true;
-                        invCtrl.render();
-                        window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE' }));
+                        invCtrl.openInventory(true); // Open in 3x3 mode
                     }
                     return;
                 }

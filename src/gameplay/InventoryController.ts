@@ -203,6 +203,39 @@ export class InventoryController {
         }
     }
 
+    public handleEKey() {
+        const invContainer = document.getElementById('inventory-screen');
+        const isCurrentlyOpen = invContainer && invContainer.style.display !== 'none';
+
+        if (isCurrentlyOpen) {
+            this.closeInventory();
+        } else {
+            this.openInventory(false);
+        }
+    }
+
+    public openInventory(isTable: boolean) {
+        this.isTableOpen = isTable;
+        this.ui.setCraftingMode(isTable);
+        this.render();
+
+        const invVisible = this.ui.toggleInventory();
+        if (invVisible && (window as any).player) {
+            (window as any).player.controls.unlock();
+        }
+    }
+
+    public closeInventory() {
+        this.isTableOpen = false;
+        this.ui.setCraftingMode(false);
+        this.render();
+
+        const invVisible = this.ui.toggleInventory();
+        if (!invVisible && (window as any).player) {
+            (window as any).player.controls.lock();
+        }
+    }
+
     public showItemNameForSlot(itemId: number) {
         if (itemId === 0) return;
         const name = (window as any).getItemName ? (window as any).getItemName(itemId) : `Item ${itemId}`;
