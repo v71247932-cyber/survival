@@ -14,11 +14,6 @@ export class UIManager {
             </div>
             
             <div id="persistent-hud" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: auto;">
-                <!-- Main Inventory Grid (Persistent) -->
-                <div id="main-inventory" style="display: grid; grid-template-columns: repeat(9, 46px); grid-template-rows: repeat(3, 46px); gap: 6px; padding: 10px; background: rgba(0,10,20,0.6); border: 2px solid rgba(255,255,255,0.05); border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 10px 40px rgba(0,0,0,0.4);">
-                     ${Array(27).fill(0).map((_, i) => `<div class="slot" id="main-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px;"></div>`).join('')}
-                </div>
-                
                 <!-- Hotbar -->
                 <div id="hotbar-container" style="display: flex; gap: 6px; padding: 6px; background: rgba(0,10,20,0.8); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                     ${Array(9).fill(0).map((_, i) => `<div class="slot hotbar-slot" id="hotbar-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);"></div>`).join('')}
@@ -36,6 +31,11 @@ export class UIManager {
                     </div>
                     <div style="font-weight: 200; font-size: 32px; color: rgba(255,255,255,0.2);">→</div>
                     <div class="slot" id="crafting-result" style="width: 56px; height: 56px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 20px rgba(255,255,255,0.05);"></div>
+                </div>
+
+                <h2 style="margin: 0; font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; margin-top: 10px;">Backpack</h2>
+                <div id="main-inventory" style="display: grid; grid-template-columns: repeat(9, 46px); grid-template-rows: repeat(3, 46px); gap: 6px;">
+                     ${Array(27).fill(0).map((_, i) => `<div class="slot" id="main-${i}" style="width: 46px; height: 46px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); border-radius: 8px;"></div>`).join('')}
                 </div>
             </div>
             
