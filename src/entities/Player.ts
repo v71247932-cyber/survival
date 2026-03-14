@@ -5,6 +5,7 @@ import { BlockType, BlockTransparent } from '../world/BlockInfo';
 import { InventoryManager } from '../gameplay/InventoryManager';
 import { SurvivalSystem } from '../gameplay/SurvivalSystem';
 import { getBlockTypeFromItem, getItemFromBlockType, ItemID } from '../gameplay/Items';
+import { createBreakMaterials } from '../utils/TextureGenerator';
 
 export class Player {
     public camera: THREE.PerspectiveCamera;
@@ -27,7 +28,9 @@ export class Player {
     private breakTarget: THREE.Vector3 | null = null;
     private breakProgress = 0;
     private breakTime = 0.6; // Seconds to break a block
-    private miningProgressEl: HTMLElement | null = null;
+
+    private breakMaterials: THREE.Material[];
+    private breakOverlay: THREE.Mesh;
 
     // Physics properties
     private speed = 10.0;
@@ -47,7 +50,15 @@ export class Player {
         while (spawnY > 0 && world.getBlock(0, spawnY - 1, 0) === BlockType.AIR) spawnY--;
         this.camera.position.set(0, spawnY + this.normalHeight, 0);
 
-        this.createMiningUI();
+        // Break Overlay
+        this.breakMaterials = createBreakMaterials();
+        this.breakOverlay = new THREE.Mesh(
+            new THREE.BoxGeometry(1.002, 1.002, 1.002),
+            this.breakMaterials[0]
+        );
+        this.breakOverlay.visible = false;
+        this.breakOverlay.frustumCulled = false;
+        this.world.scene.add(this.breakOverlay);
 
         domElement.addEventListener('mousedown', (e) => {
             if (!this.controls.isLocked) {
@@ -219,29 +230,6 @@ export class Player {
         if (axis === 'y') this.onGround = false;
     }
 
-    private createMiningUI() {
-        this.miningProgressEl = document.createElement('div');
-        this.miningProgressEl.id = 'mining-progress';
-        this.miningProgressEl.style.position = 'absolute';
-        this.miningProgressEl.style.top = '50%';
-        this.miningProgressEl.style.left = '50%';
-        this.miningProgressEl.style.width = '40px';
-        this.miningProgressEl.style.height = '6px';
-        this.miningProgressEl.style.border = '2px solid white';
-        this.miningProgressEl.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        this.miningProgressEl.style.transform = 'translate(-50%, 40px)'; // Below crosshair
-        this.miningProgressEl.style.display = 'none';
-
-        const inner = document.createElement('div');
-        inner.id = 'mining-progress-inner';
-        inner.style.width = '0%';
-        inner.style.height = '100%';
-        inner.style.backgroundColor = '#55ff55';
-        this.miningProgressEl.appendChild(inner);
-
-        document.body.appendChild(this.miningProgressEl);
-    }
-
     private updateMining(dt: number) {
         if (!this.isBreaking) return;
 
@@ -301,12 +289,11 @@ export class Player {
 
             this.breakProgress += dt;
 
-            // Visual feedback - simple bar scaling
-            if (this.miningProgressEl) {
-                this.miningProgressEl.style.display = 'block';
-                const percent = Math.min(100, (this.breakProgress / this.breakTime) * 100);
-                this.miningProgressEl.style.width = `${percent}%`;
-            }
+            // Updated Visual Feedback (3D Cracks)
+            this.breakOverlay.visible = true;
+            this.breakOverlay.position.set(blockX + 0.5, blockY + 0.5, blockZ + 0.5);
+            const stage = Math.min(9, Math.floor((this.breakProgress / this.breakTime) * 10));
+            this.breakOverlay.material = this.breakMaterials[stage];
 
             if (this.breakProgress >= this.breakTime) {
                 this.breakBlockInternal(blockX, blockY, blockZ, targetBlock);
@@ -320,9 +307,7 @@ export class Player {
     private resetMining() {
         this.breakTarget = null;
         this.breakProgress = 0;
-        if (this.miningProgressEl) {
-            this.miningProgressEl.style.display = 'none';
-        }
+        if (this.breakOverlay) this.breakOverlay.visible = false;
     }
 
     private breakBlockInternal(bx: number, by: number, bz: number, b: BlockType) {

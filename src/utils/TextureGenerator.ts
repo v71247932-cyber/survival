@@ -84,3 +84,44 @@ export function createBlockMaterials(): THREE.Material[] {
         new THREE.MeshLambertMaterial({ map: generateTexture('noise', '#E8E8E8', 10) })  // 18: Iron Block
     ];
 }
+
+export function createBreakMaterials(): THREE.Material[] {
+    const materials: THREE.Material[] = [];
+    for (let i = 0; i < 10; i++) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 16;
+        canvas.height = 16;
+        const ctx = canvas.getContext('2d')!;
+
+        // Clear (transparent)
+        ctx.clearRect(0, 0, 16, 16);
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        // Draw pixelated cracks based on stage i
+        const crackCount = (i + 1) * 3;
+        for (let c = 0; c < crackCount; c++) {
+            const x = Math.floor(Math.random() * 16);
+            const y = Math.floor(Math.random() * 16);
+            const w = 1 + Math.floor(Math.random() * 4);
+            const h = 1 + Math.floor(Math.random() * 2);
+            ctx.fillRect(x, y, w, h);
+            // Connect bit
+            if (Math.random() > 0.5) ctx.fillRect(x + w, y + h - 1, 1, 1);
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.magFilter = THREE.NearestFilter;
+        texture.minFilter = THREE.NearestFilter;
+        texture.colorSpace = THREE.SRGBColorSpace;
+
+        materials.push(new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            depthWrite: false,
+            polygonOffset: true,
+            polygonOffsetFactor: -4, // Ensure it's in front of the block
+            polygonOffsetUnits: -4
+        }));
+    }
+    return materials;
+}
