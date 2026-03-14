@@ -185,6 +185,23 @@ let lastTime = performance.now();
 const fpsElement = document.getElementById('performance-stats');
 let lastHudUpdate = 0;
 
+// Auto-Realm detection
+const pathParts = window.location.pathname.split('/').filter(p => p.length > 0);
+const urlRealm = pathParts.length > 0 ? pathParts[0] : null;
+
+if (urlRealm) {
+    console.log(`[Realm] Detected realm: ${urlRealm}`);
+    const username = `Player${Math.floor(Math.random() * 1000)}`;
+    const serverIp = 'localhost:8080'; // Default, ideally this should be production server
+
+    // Hide menu and connect
+    const menu = document.getElementById('main-menu');
+    if (menu) menu.style.display = 'none';
+    uiLayer.style.pointerEvents = 'none';
+
+    networkManager.connect(serverIp, username, urlRealm);
+}
+
 function animate() {
     requestAnimationFrame(animate);
 

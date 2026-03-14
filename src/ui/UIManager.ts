@@ -46,10 +46,14 @@ export class UIManager {
             
             <div id="main-menu" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)); display: flex; justify-content: center; align-items: center; pointer-events: auto; z-index: 1000; font-family: 'Inter', sans-serif;">
                 <div style="background: rgba(10,20,30,0.8); padding: 50px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); color: white; text-align: center; box-shadow: 0 30px 100px rgba(0,0,0,0.5); backdrop-filter: blur(15px); max-width: 400px; width: 90%;">
-                    <h1 style="margin-top: 0; font-size: 42px; font-weight: 900; background: linear-gradient(45deg, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; margin-bottom: 5px;">ANTIGRAVITY</h1>
+                    <h1 style="margin-top: 0; font-size: 42px; font-weight: 900; background: linear-gradient(45deg, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; margin-bottom: 5px;">IDK123IKD123DASA</h1>
                     <p style="color: rgba(255,255,255,0.4); margin-bottom: 40px; font-size: 14px;">ULTIMATE SURVIVAL EXPERIENCE</p>
                     <div style="display: flex; flex-direction: column; gap: 15px;">
                         <input id="menu-username" type="text" placeholder="Username" style="padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" value="Player${Math.floor(Math.random() * 1000)}" />
+                        <div style="display: flex; gap: 8px;">
+                            <input id="menu-realm-name" type="text" placeholder="Realm Name" style="flex: 1; padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" />
+                            <button id="btn-create-realm" style="padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; background: #55ff55; color: #000; border: none; cursor: pointer;">Create</button>
+                        </div>
                         <input id="menu-ip" type="text" placeholder="Server Address" style="padding: 14px; border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none;" value="localhost:8080" />
                         <button id="btn-singleplayer" style="padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; background: #fff; color: #000; border: none; cursor: pointer;">Start Adventure</button>
                         <button id="btn-multiplayer" style="padding: 16px; border-radius: 12px; font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">Connect to Realm</button>
@@ -101,17 +105,33 @@ export class UIManager {
         const inputUsername = document.getElementById('menu-username') as HTMLInputElement;
         const inputIp = document.getElementById('menu-ip') as HTMLInputElement;
 
-        if (menu && btnSingle && btnMulti && inputUsername && inputIp) {
+        const btnCreate = document.getElementById('btn-create-realm');
+        const inputRealm = document.getElementById('menu-realm-name') as HTMLInputElement;
+
+        if (menu && btnSingle && btnMulti && btnCreate && inputUsername && inputIp && inputRealm) {
             btnSingle.addEventListener('click', () => {
                 menu.style.display = 'none';
                 this.container.style.pointerEvents = 'none';
             });
 
+            btnCreate.addEventListener('click', () => {
+                const realm = inputRealm.value.trim();
+                if (realm) {
+                    // Redirect to the realm URL
+                    const baseUrl = window.location.origin + window.location.pathname;
+                    const joinUrl = baseUrl.endsWith('/') ? baseUrl + realm : baseUrl + '/' + realm;
+                    window.location.href = joinUrl;
+                } else {
+                    alert('Please enter a realm name.');
+                }
+            });
+
             btnMulti.addEventListener('click', () => {
                 const username = inputUsername.value;
                 const ip = inputIp.value;
+                const realm = inputRealm.value.trim();
                 if ((window as any).networkManager) {
-                    (window as any).networkManager.connect(ip, username);
+                    (window as any).networkManager.connect(ip, username, realm);
                 }
                 menu.style.display = 'none';
                 this.container.style.pointerEvents = 'none';

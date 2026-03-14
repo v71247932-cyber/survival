@@ -40,12 +40,16 @@ export class NetworkManager {
         });
     }
 
-    public connect(ip: string, username: string) {
+    public connect(ip: string, username: string, realm: string = '') {
         if (this.ws) {
             this.ws.close();
         }
 
-        const url = ip.startsWith('ws://') || ip.startsWith('wss://') ? ip : `ws://${ip}`;
+        let url = ip.startsWith('ws://') || ip.startsWith('wss://') ? ip : `ws://${ip}`;
+        if (realm) {
+            const separator = url.includes('?') ? '&' : '?';
+            url += `${separator}realm=${encodeURIComponent(realm)}`;
+        }
         console.log(`[Network] Connecting to ${url}...`);
 
         try {
