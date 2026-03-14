@@ -23,6 +23,11 @@ export class Player {
     private moveRight = false;
     private isRunning = false;
     private isCrouching = false;
+    private isBreaking = false;
+    private breakTarget: { x: number, y: number, z: number } | null = null;
+    private breakProgress = 0;
+    private breakTime = 0.6; // Seconds to break a block
+    private miningProgressEl: HTMLElement | null = null;
 
     // Physics properties
     private speed = 10.0;
@@ -42,17 +47,24 @@ export class Player {
         while (spawnY > 0 && world.getBlock(0, spawnY - 1, 0) === BlockType.AIR) spawnY--;
         this.camera.position.set(0, spawnY + this.normalHeight, 0);
 
+        this.createMiningUI();
+
         domElement.addEventListener('mousedown', (e) => {
             if (!this.controls.isLocked) {
-                // We use click to lock, handle locking here or elsewhere.
-                // It's usually better to let a dedicated "Play" button lock it, but for now:
                 this.controls.lock();
             } else {
                 if (e.button === 0) {
-                    this.breakBlock(); // Left click
+                    this.isBreaking = true;
                 } else if (e.button === 2) {
                     this.placeBlock(); // Right click
                 }
+            }
+        });
+
+        domElement.addEventListener('mouseup', (e) => {
+            if (e.button === 0) {
+                this.isBreaking = false;
+                this.resetMining();
             }
         });
 
@@ -96,7 +108,17 @@ export class Player {
     }
 
     public update(delta: number) {
-        if (!this.controls.isLocked) return;
+        if (!this.controls.isLocked) {
+            this.isBreaking = false;
+            this.resetMining();
+            return;
+        }
+
+        if (this.isBreaking) {
+            this.updateMining(delta);
+        } else {
+            this.resetMining();
+        }
 
         // Apply gravity
         this.velocity.y -= this.gravity * delta;
@@ -193,15 +215,37 @@ export class Player {
         if (axis === 'y') this.onGround = false;
     }
 
-    public breakBlock() {
-        // Raycast
+    private createMiningUI() {
+        this.miningProgressEl = document.createElement('div');
+        this.miningProgressEl.id = 'mining-progress';
+        this.miningProgressEl.style.position = 'absolute';
+        this.miningProgressEl.style.top = '50%';
+        this.miningProgressEl.style.left = '50%';
+        this.miningProgressEl.style.width = '40px';
+        this.miningProgressEl.style.height = '6px';
+        this.miningProgressEl.style.border = '2px solid white';
+        this.miningProgressEl.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        this.miningProgressEl.style.transform = 'translate(-50%, 40px)'; // Below crosshair
+        this.miningProgressEl.style.display = 'none';
+
+        const inner = document.createElement('div');
+        inner.id = 'mining-progress-inner';
+        inner.style.width = '0%';
+        inner.style.height = '100%';
+        inner.style.backgroundColor = '#55ff55';
+        this.miningProgressEl.appendChild(inner);
+
+        document.body.appendChild(this.miningProgressEl);
+    }
+
+    private updateMining(delta: number) {
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
-
         const reach = 5;
         let p = raycaster.ray.origin;
         let d = raycaster.ray.direction;
 
+        let targetFound = false;
         for (let i = 0; i < reach; i += 0.1) {
             const bx = Math.floor(p.x + d.x * i);
             const by = Math.floor(p.y + d.y * i);
@@ -209,24 +253,66 @@ export class Player {
 
             const b = this.world.getBlock(bx, by, bz);
             if (b !== BlockType.AIR && b !== BlockType.WATER) {
-                if (b === BlockType.BEDROCK) return; // Cannot break bedrock
-
-                // Track tool durability
-                if (this.inventory.getSelectedSlot().item >= 100) {
-                    this.inventory.damageSelectedTool();
+                if (b === BlockType.BEDROCK) {
+                    this.resetMining();
+                    return;
                 }
 
-                // Add to inventory before breaking
-                const item = getItemFromBlockType(b);
-                if (item !== ItemID.NONE) {
-                    this.inventory.addItem(item, 1);
+                // Found a breakable block
+                const currentTarget = { x: bx, y: by, z: bz };
+                if (!this.breakTarget || this.breakTarget.x !== bx || this.breakTarget.y !== by || this.breakTarget.z !== bz) {
+                    this.breakTarget = currentTarget;
+                    this.breakProgress = 0;
                 }
 
-                // Break block
-                this.world.setBlock(bx, by, bz, BlockType.AIR);
-                return;
+                this.breakProgress += delta;
+                targetFound = true;
+
+                // Update UI
+                if (this.miningProgressEl) {
+                    this.miningProgressEl.style.display = 'block';
+                    const inner = this.miningProgressEl.querySelector('#mining-progress-inner') as HTMLElement;
+                    if (inner) inner.style.width = `${Math.min(100, (this.breakProgress / this.breakTime) * 100)}%`;
+                }
+
+                if (this.breakProgress >= this.breakTime) {
+                    this.breakBlockInternal(bx, by, bz, b);
+                    this.resetMining();
+                }
+                break;
             }
         }
+
+        if (!targetFound) {
+            this.resetMining();
+        }
+    }
+
+    private resetMining() {
+        this.breakTarget = null;
+        this.breakProgress = 0;
+        if (this.miningProgressEl) {
+            this.miningProgressEl.style.display = 'none';
+        }
+    }
+
+    private breakBlockInternal(bx: number, by: number, bz: number, b: BlockType) {
+        // Track tool durability
+        if (this.inventory.getSelectedSlot().item >= 100) {
+            this.inventory.damageSelectedTool();
+        }
+
+        const item = getItemFromBlockType(b);
+        if (item !== ItemID.NONE) {
+            this.inventory.addItem(item, 1);
+        }
+
+        this.world.setBlock(bx, by, bz, BlockType.AIR);
+    }
+
+    public breakBlock() {
+        // This is now legacy but we can keep it for single clicks if needed, 
+        // though updateMining handles the primary logic now.
     }
 
     public placeBlock() {

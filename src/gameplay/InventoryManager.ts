@@ -9,7 +9,6 @@ export class InventoryManager {
     constructor() {
         // Give some starting items for testing
         this.addItem(ItemID.DIRT_BLOCK, 10);
-        this.addItem(ItemID.WOODEN_PICKAXE, 1, 50);
     }
 
     private notifyUI() {
